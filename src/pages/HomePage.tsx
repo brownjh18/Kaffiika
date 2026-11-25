@@ -5,13 +5,6 @@ import {
   MapPin,
   ShieldCheck,
   Sparkles,
-  Eye,
-  Plus,
-  Quote,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Award,
   BookOpen,
 } from 'lucide-react';
 import {
@@ -101,159 +94,112 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div>
-      {/* ==================== HERO SLIDER WITH ORIGINAL KAFFIIKA BANNERS ==================== */}
+      {/* ==================== HERO WITH SWITCHING BACKGROUND BANNERS ==================== */}
       <section className="relative bg-[#061A36] text-white overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={KAFFIIKA_ASSETS.parallaxBg}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-[#061A36]/75" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#061A36]/90 via-[#061A36]/70 to-[#061A36]/45" />
+          {KAFFIIKA_ASSETS.banners.map((src, idx) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              aria-hidden="true"
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ${
+                idx === bannerIndex ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-[#061A36]/55" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#061A36]/80 via-[#061A36]/55 to-[#061A36]/35" />
         </div>
-        <div className="relative max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            {/* Left Column: Corporate Blue Headline & Multi-Page Navigation CTAs */}
-            <div className="lg:col-span-6 space-y-5 z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#065AA7]/80 border border-sky-400/40 text-sky-100 text-xs font-mono-tech font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
-                <span>{activeCaption.badge}</span>
-              </div>
 
-              <h1 className="text-3xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-white">
-                {activeCaption.title}
-              </h1>
+        <div className="relative max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
+          <div className="max-w-4xl space-y-5 z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#065AA7]/80 border border-sky-400/40 text-sky-100 text-xs font-mono-tech font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span>{activeCaption.badge}</span>
+            </div>
 
-              <p className="text-base sm:text-lg text-sky-100/90 leading-relaxed">
-                {activeCaption.subtitle}
-              </p>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-[1.12] tracking-tight text-white">
+              {activeCaption.title}
+            </h1>
 
-              {/* Multi-Page Links */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <a
-                  href="#/products.html"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate('products.html');
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-sm sm:text-base shadow-lg border border-sky-400/30 transition-all"
-                >
-                  <span>Explore All {products.length} Products</span>
-                  <ArrowRight className="w-4 h-4 text-[#F59E0B]" />
-                </a>
+            <p className="text-base sm:text-lg text-sky-100/95 leading-relaxed max-w-3xl">
+              {activeCaption.subtitle}
+            </p>
 
-                <a
-                  href="#/calculator.html"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate('calculator.html');
-                  }}
-                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm sm:text-base shadow-md transition-all"
-                >
-                  <Calculator className="w-4 h-4" />
-                  <span>Ration Calculator</span>
-                </a>
+            {/* Multi-Page Links */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <a
+                href="#/products.html"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('products.html');
+                }}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-sm sm:text-base shadow-lg border border-sky-400/30 transition-all"
+              >
+                <span>Explore All {products.length} Products</span>
+                <ArrowRight className="w-4 h-4 text-[#F59E0B]" />
+              </a>
 
-                <a
-                  href="#/branches.html"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate('branches.html');
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-sm transition-all"
-                >
-                  <MapPin className="w-4 h-4 text-sky-300" />
-                  <span>Visit Head Office</span>
-                </a>
-              </div>
+              <a
+                href="#/calculator.html"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('calculator.html');
+                }}
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm sm:text-base shadow-md transition-all"
+              >
+                <Calculator className="w-4 h-4" />
+                <span>Ration Calculator</span>
+              </a>
 
-              {/* Category Quick Jump Links to products.html */}
-              <div className="pt-4 border-t border-white/15">
-                <span className="block text-[11px] font-mono-tech uppercase tracking-wider text-sky-200 mb-2.5">
-                  Browse Feed Categories on products.html:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {HOME_CATEGORIES.map((cat) => (
-                    <a
-                      key={cat}
-                      href={`#/products.html?category=${encodeURIComponent(cat)}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onNavigate('products.html', cat);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#065AA7] text-white border border-sky-300/25 text-xs font-bold transition-all"
-                    >
-                      {cat} ({products.filter((p) => p.category === cat).length})
-                    </a>
-                  ))}
-                </div>
+              <a
+                href="#/branches.html"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('branches.html');
+                }}
+                className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-sm transition-all"
+              >
+                <MapPin className="w-4 h-4 text-sky-300" />
+                <span>Visit Head Office</span>
+              </a>
+            </div>
+
+            {/* Category Quick Jump Links to products.html */}
+            <div className="pt-4 border-t border-white/15">
+              <span className="block text-[11px] font-mono-tech uppercase tracking-wider text-sky-200 mb-2.5">
+                Browse Feed Categories on products.html:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {HOME_CATEGORIES.map((cat) => (
+                  <a
+                    key={cat}
+                    href={`#/products.html?category=${encodeURIComponent(cat)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigate('products.html', cat);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#065AA7] text-white border border-sky-300/25 text-xs font-bold transition-all"
+                  >
+                    {cat} ({products.filter((p) => p.category === cat).length})
+                  </a>
+                ))}
               </div>
             </div>
 
-            {/* Right Column: Original 5-Banner Carousel from https://kaffiikafeeds.com/ */}
-            <div className="lg:col-span-6">
-              <div className="relative rounded-2xl overflow-hidden border-2 border-sky-400/35 shadow-2xl bg-[#041226]">
-                <div className="aspect-[16/10] w-full relative overflow-hidden">
-                  <img
-                    src={KAFFIIKA_ASSETS.banners[bannerIndex]}
-                    alt={`Kaffiika Animal Feeds Banner ${bannerIndex + 1}`}
-                    className="w-full h-full object-cover transition-all duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#061A36]/80 via-transparent to-transparent" />
-
-                  {/* Prev / Next Controls */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setBannerIndex(
-                        (prev) =>
-                          (prev - 1 + KAFFIIKA_ASSETS.banners.length) %
-                          KAFFIIKA_ASSETS.banners.length
-                      )
-                    }
-                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#061A36]/75 hover:bg-[#065AA7] text-white border border-white/20 cursor-pointer"
-                    aria-label="Previous Slide"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setBannerIndex(
-                        (prev) => (prev + 1) % KAFFIIKA_ASSETS.banners.length
-                      )
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#061A36]/75 hover:bg-[#065AA7] text-white border border-white/20 cursor-pointer"
-                    aria-label="Next Slide"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-
-                  {/* Bottom Slide Indicators */}
-                  <div className="absolute bottom-3.5 left-4 right-4 flex items-center justify-between">
-                    <span className="text-xs font-mono-tech text-sky-200 bg-[#061A36]/80 px-2.5 py-1 rounded border border-white/15">
-                      Official Banner {bannerIndex + 1} / {KAFFIIKA_ASSETS.banners.length}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {KAFFIIKA_ASSETS.banners.map((_, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setBannerIndex(idx)}
-                          className={`h-2 rounded-full transition-all cursor-pointer ${
-                            idx === bannerIndex
-                              ? 'w-7 bg-[#F59E0B]'
-                              : 'w-2 bg-white/50 hover:bg-white'
-                          }`}
-                          aria-label={`Slide ${idx + 1}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="pt-4 flex items-center gap-2">
+              {KAFFIIKA_ASSETS.banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setBannerIndex(idx)}
+                  className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                    idx === bannerIndex ? 'w-8 bg-[#F59E0B]' : 'w-2.5 bg-white/45 hover:bg-white/80'
+                  }`}
+                  aria-label={`Show hero background ${idx + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
