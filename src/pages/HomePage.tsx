@@ -5,6 +5,11 @@ import {
   MapPin,
   ShieldCheck,
   Sparkles,
+  Eye,
+  Plus,
+  Quote,
+  Calendar,
+  Award,
   BookOpen,
 } from 'lucide-react';
 import {
@@ -108,8 +113,8 @@ export const HomePage: React.FC<HomePageProps> = ({
               }`}
             />
           ))}
-          <div className="absolute inset-0 bg-[#061A36]/55" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#061A36]/80 via-[#061A36]/55 to-[#061A36]/35" />
+          <div className="absolute inset-0 bg-[#061A36]/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#061A36]/72 via-[#061A36]/45 to-[#061A36]/25" />
         </div>
 
         <div className="relative max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
