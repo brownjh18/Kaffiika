@@ -19,6 +19,9 @@ import {
   ExternalLink,
   Save,
   X,
+  Settings,
+  Upload,
+  User,
 } from 'lucide-react';
 import {
   Product,
@@ -27,6 +30,7 @@ import {
   CustomerOrder,
   FeedCategory,
   PageRoute,
+  TeamMember,
   COMPANY_INFO,
   KAFFIIKA_ASSETS,
 } from '../data/kaffiikaData';
@@ -36,6 +40,7 @@ interface AdminPageProps {
   branches: Branch[];
   blogs: BlogPost[];
   orders: CustomerOrder[];
+  team: TeamMember[];
   onUpdateProduct: (updated: Product) => void;
   onAddProduct: (newProd: Product) => void;
   onDeleteProduct: (id: number) => void;
@@ -49,6 +54,9 @@ interface AdminPageProps {
   onDeleteBranch: (branchId: string) => void;
   onAddBlog: (newBlog: BlogPost) => void;
   onDeleteBlog: (blogId: string) => void;
+  onUpdateTeamMember: (updated: TeamMember) => void;
+  onAddTeamMember: (member: TeamMember) => void;
+  onDeleteTeamMember: (id: string) => void;
   onResetAllData: () => void;
   onNavigate: (page: PageRoute) => void;
 }
@@ -58,6 +66,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   branches,
   blogs,
   orders,
+  team,
   onUpdateProduct,
   onAddProduct,
   onDeleteProduct,
@@ -68,19 +77,23 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onDeleteBranch,
   onAddBlog,
   onDeleteBlog,
+  onUpdateTeamMember,
+  onAddTeamMember,
+  onDeleteTeamMember,
   onResetAllData,
   onNavigate,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [loginEmail, setLoginEmail] = useState(
-    import.meta.env.VITE_ADMIN_EMAIL ?? COMPANY_INFO.email
-  );
-  const [loginPassword, setLoginPassword] = useState(
-    import.meta.env.VITE_ADMIN_PASSWORD ?? ''
-  );
+  const ADMIN_PW_KEY = 'kaffiika_admin_password';
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    try { return localStorage.getItem(ADMIN_PW_KEY) || 'admin123'; } catch { return 'admin123'; }
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [newAdminPassword, setNewAdminPassword] = useState('');
 
   const [activeModule, setActiveModule] = useState<
-    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs'
+    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'settings'
   >('dashboard');
 
   // Product Management State
@@ -135,7 +148,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     summary: '',
     location: '',
     imageUrl: 'https://kaffiikafeeds.com/public/uploads/news/post_20220418163035235.jpg',
+    videoUrl: '',
     content: '',
+  });
+
+  const [newTeamForm, setNewTeamForm] = useState({
+    name: '', role: '', email: '', phone: '+256 ', department: 'Regional Sales Management' as TeamMember['department'], bio: '', photoUrl: '',
   });
 
   const [adminToast, setAdminToast] = useState<string | null>(null);
@@ -144,6 +162,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setAdminToast(msg);
     setTimeout(() => setAdminToast(null), 2600);
   };
+
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
   // KPIs
   const totalRevenueUgx = orders.reduce((s, o) => s + o.totalAmountUgx, 0);
@@ -238,6 +264,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       summary: newBlogForm.summary,
       location: newBlogForm.location || undefined,
       imageUrl: newBlogForm.imageUrl,
+      videoUrl: newBlogForm.videoUrl || undefined,
       content: newBlogForm.content
         .split('\n')
         .filter((l) => l.trim().length > 0),
@@ -250,6 +277,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       location: '',
       imageUrl:
         'https://kaffiikafeeds.com/public/uploads/news/post_20220418163035235.jpg',
+      videoUrl: '',
       content: '',
     });
     notify(`Published blog post: ${created.title}`);
@@ -278,25 +306,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              setIsAuthenticated(true);
+              if (loginPassword === adminPassword) {
+                setIsAuthenticated(true);
+                setLoginError(null);
+                setLoginPassword('');
+              } else {
+                setLoginError('Incorrect password.');
+              }
             }}
             className="space-y-4"
           >
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                Admin Email
-              </label>
-              <input
-                type="email"
-                required
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                Password
+                Admin Password
               </label>
               <input
                 type="password"
@@ -304,9 +326,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
+                placeholder="Enter admin password"
               />
             </div>
-
+            {loginError && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5">{loginError}</div>}
             <button
               type="submit"
               className="w-full py-3.5 px-5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2"
@@ -336,7 +359,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono-tech uppercase tracking-wider px-2 py-0.5 rounded bg-[#F59E0B] text-[#061A36] font-bold">
-                  ERP ADMIN PORTAL • admin.html
+                  ERP ADMIN PORTAL
                 </span>
                 <span className="text-xs text-sky-300 font-mono-tech">
                   {COMPANY_INFO.email}
@@ -423,6 +446,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               id: 'blogs',
               label: `Blogs & Trainings (${blogs.length})`,
               icon: FileText,
+            },
+            {
+              id: 'team',
+              label: `Team Managers (${team.length})`,
+              icon: User,
+            },
+            {
+              id: 'settings',
+              label: 'Settings',
+              icon: Settings,
             },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -834,6 +867,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         tilapia.jpg (Fish / Aqua)
                       </option>
                     </select>
+                    <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewProductForm({ ...newProductForm, imageUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mt-2" />
+                    <p className="text-[11px] text-slate-500 mt-1">Upload an image or choose a preset above.</p>
                   </div>
 
                   <div className="sm:col-span-2 lg:col-span-3">
@@ -1438,6 +1473,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Cover Image (upload or URL)</label>
+                  <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewBlogForm({ ...newBlogForm, imageUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mb-2" />
+                  <input type="text" value={newBlogForm.imageUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, imageUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Video (upload or URL, optional)</label>
+                  <input type="file" accept="video/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewBlogForm({ ...newBlogForm, videoUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mb-2" />
+                  <input type="text" value={newBlogForm.videoUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, videoUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Video URL (mp4/webm)" />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">
                     Short Summary *
                   </label>
@@ -1520,6 +1565,90 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeModule === 'team' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-4 bg-white rounded-2xl p-6 border border-sky-200 shadow-sm">
+              <h3 className="text-lg font-bold text-[#0A1E3C] mb-4">Add Team Member / Manager</h3>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!newTeamForm.name.trim()) return;
+                onAddTeamMember({
+                  id: `team-${Date.now()}`, name: newTeamForm.name.trim(), role: newTeamForm.role.trim() || 'Manager',
+                  email: newTeamForm.email.trim(), phones: [newTeamForm.phone.trim()].filter(Boolean),
+                  department: newTeamForm.department, bio: newTeamForm.bio.trim(), photoUrl: newTeamForm.photoUrl.trim() || KAFFIIKA_ASSETS.accountIcon,
+                });
+                setNewTeamForm({ name: '', role: '', email: '', phone: '+256 ', department: 'Regional Sales Management', bio: '', photoUrl: '' });
+                notify('Team member added.');
+              }} className="space-y-3">
+                <input value={newTeamForm.name} onChange={(e)=>setNewTeamForm({...newTeamForm,name:e.target.value})} placeholder="Full name *" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                <input value={newTeamForm.role} onChange={(e)=>setNewTeamForm({...newTeamForm,role:e.target.value})} placeholder="Role / Title" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                <input value={newTeamForm.email} onChange={(e)=>setNewTeamForm({...newTeamForm,email:e.target.value})} placeholder="Email" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                <input value={newTeamForm.phone} onChange={(e)=>setNewTeamForm({...newTeamForm,phone:e.target.value})} placeholder="Phone" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" />
+                <select value={newTeamForm.department} onChange={(e)=>setNewTeamForm({...newTeamForm,department:e.target.value as TeamMember['department']})} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
+                  <option>Executive Leadership</option><option>Commercial & Operations</option><option>Regional Sales Management</option>
+                </select>
+                <textarea value={newTeamForm.bio} onChange={(e)=>setNewTeamForm({...newTeamForm,bio:e.target.value})} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Photo (upload or URL)</label>
+                  <input type="file" accept="image/*" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) setNewTeamForm({...newTeamForm, photoUrl: await fileToDataUrl(f)});}} className="w-full text-xs mb-2" />
+                  <input value={newTeamForm.photoUrl} onChange={(e)=>setNewTeamForm({...newTeamForm,photoUrl:e.target.value})} placeholder="Photo URL" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                </div>
+                <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>
+              </form>
+            </div>
+            <div className="lg:col-span-8 space-y-4">
+              {team.map((m) => (
+                <div key={m.id} className="bg-white p-5 rounded-2xl border border-sky-200 flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <img src={m.photoUrl} alt={m.name} className="w-16 h-16 rounded-xl object-cover border border-sky-200 bg-slate-100" />
+                    <div>
+                      <div className="font-bold text-[#0A1E3C]">{m.name}</div>
+                      <div className="text-xs text-[#065AA7] font-semibold">{m.role} • {m.department}</div>
+                      <div className="text-xs text-slate-500 mt-1">{m.email} {m.phones?.[0] ? `• ${m.phones[0]}` : ''}</div>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => { onDeleteTeamMember(m.id); notify(`Deleted ${m.name}`); }} className="p-2 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeModule === 'settings' && (
+          <div className="max-w-xl bg-white rounded-2xl border border-sky-200 shadow-sm p-6 space-y-5">
+            <div>
+              <h3 className="text-lg font-bold text-[#0A1E3C]">Admin Settings</h3>
+              <p className="text-sm text-slate-500">Change the admin password used to access this dashboard.</p>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newAdminPassword.trim()) return;
+                localStorage.setItem(ADMIN_PW_KEY, newAdminPassword.trim());
+                setAdminPassword(newAdminPassword.trim());
+                setNewAdminPassword('');
+                notify('Admin password updated.');
+              }}
+              className="space-y-3"
+            >
+              <label className="block">
+                <span className="text-xs font-bold text-slate-600">New Password</span>
+                <input
+                  type="password"
+                  value={newAdminPassword}
+                  onChange={(e) => setNewAdminPassword(e.target.value)}
+                  className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
+                  placeholder="Enter new admin password"
+                  required
+                />
+              </label>
+              <button type="submit" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">
+                <Save className="w-4 h-4" /> Save Password
+              </button>
+            </form>
           </div>
         )}
       </div>

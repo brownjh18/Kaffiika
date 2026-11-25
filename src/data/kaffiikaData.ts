@@ -105,6 +105,7 @@ export interface BlogPost {
   category: string;
   summary: string;
   imageUrl: string;
+  videoUrl?: string;
   location?: string;
   contacts?: string[];
   content: string[];

@@ -10,6 +10,21 @@ interface PageHeaderBannerProps {
   onNavigate: (page: PageRoute) => void;
 }
 
+const ROUTE_LABELS: Partial<Record<PageRoute, string>> = {
+  'index.html': 'Home',
+  'about.html': 'About Us',
+  'products.html': 'Our Products',
+  'farming-guides.html': 'Farming Guides',
+  'calculator.html': 'Ration Calculator',
+  'branches.html': 'Head Office',
+  'media-gallery.html': 'Blogs & Media',
+  'contact.html': 'Contact Us',
+  'admin.html': 'Admin',
+  'privacy-policy.html': 'Privacy Policy',
+  'terms.html': 'Terms & Conditions',
+  'delivery-policy.html': 'Delivery & Pickup Policy',
+};
+
 export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
   title,
   subtitle,
@@ -17,6 +32,7 @@ export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
   badgeText,
   onNavigate,
 }) => {
+  const currentLabel = ROUTE_LABELS[currentPage] ?? 'Page';
   return (
     <div className="bg-kaffiika-breadcrumb text-white py-12 sm:py-16 border-b border-sky-400/20 relative overflow-hidden">
       <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -34,10 +50,10 @@ export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
             className="inline-flex items-center gap-1.5 text-sky-300 hover:text-white transition-colors"
           >
             <Home className="w-3.5 h-3.5" />
-            <span>index.html</span>
+            <span>Home</span>
           </a>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-[#F59E0B] font-bold">{currentPage}</span>
+          <span className="text-[#F59E0B] font-bold">{currentLabel}</span>
         </nav>
 
         <div className="max-w-3xl">

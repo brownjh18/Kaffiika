@@ -109,6 +109,11 @@ export const MediaBlogPage: React.FC<MediaBlogPageProps> = ({
                         {post.category}
                       </span>
                     </div>
+                    {post.videoUrl && (
+                      <div className="px-6 pt-4">
+                        <video controls src={post.videoUrl} className="w-full rounded-xl max-h-64 bg-black" />
+                      </div>
+                    )}
 
                     <div className="p-6">
                       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-mono-tech mb-2">

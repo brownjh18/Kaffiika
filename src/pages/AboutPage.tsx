@@ -213,7 +213,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
               }}
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-sm"
             >
-              <span>View Products (products.html)</span>
+              <span>View Products</span>
               <ArrowRight className="w-4 h-4" />
             </a>
             <a
@@ -224,7 +224,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
               }}
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm"
             >
-              <span>View Head Office (branches.html)</span>
+              <span>View Head Office</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

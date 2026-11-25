@@ -174,7 +174,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Category Quick Jump Links to products.html */}
             <div className="pt-4 border-t border-white/15">
               <span className="block text-[11px] font-mono-tech uppercase tracking-wider text-sky-200 mb-2.5">
-                Browse Feed Categories on products.html:
+                Browse Feed Categories:
               </span>
               <div className="flex flex-wrap gap-2">
                 {HOME_CATEGORIES.map((cat) => (
@@ -286,7 +286,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             }}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-xs sm:text-sm shadow-sm transition-colors self-start lg:self-auto"
           >
-            <span>Open Full Catalog Page (products.html)</span>
+            <span>Open Full Product Catalog</span>
             <ArrowRight className="w-4 h-4" />
           </a>
         </div>
@@ -405,7 +405,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           >
             <span>
               View All {products.filter((p) => p.category === activeTabCategory).length}{' '}
-              {activeTabCategory} Products on products.html
+              View All {activeTabCategory} Products
             </span>
             <ArrowRight className="w-4 h-4" />
           </a>
@@ -439,7 +439,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm shadow-lg transition-all"
                 >
                   <MapPin className="w-4 h-4" />
-                  <span>Visit Our Head Office (branches.html)</span>
+                  <span>Visit Our Head Office</span>
                 </a>
                 <a
                   href="#/farming-guides.html"

@@ -178,7 +178,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#065AA7] hover:underline"
                 >
                   <Building2 className="w-4 h-4" />
-                  <span>Visit our head office details on branches.html</span>
+                  <span>View Head Office Details</span>
                 </a>
               </div>
             </div>

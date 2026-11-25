@@ -10,6 +10,9 @@ import {
   X,
   Building2,
   Shield,
+  LogIn,
+  LogOut,
+  User,
 } from 'lucide-react';
 import {
   PRODUCTS,
@@ -28,6 +31,7 @@ import {
 } from './data/kaffiikaData';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { QuoteDrawer, QuoteItem } from './components/QuoteDrawer';
+import { AuthModal, AuthUser } from './components/AuthModal';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ProductsPage } from './pages/ProductsPage';
@@ -108,6 +112,15 @@ export function App() {
     }
   });
 
+  const [team, setTeam] = useState<TeamMember[]>(() => {
+    try {
+      const saved = localStorage.getItem('kaffiika_team_v1');
+      return saved ? JSON.parse(saved) : TEAM_MEMBERS;
+    } catch {
+      return TEAM_MEMBERS;
+    }
+  });
+
   const [orders, setOrders] = useState<CustomerOrder[]>(() => {
     try {
       const saved = localStorage.getItem('kaffiika_orders_v2');
@@ -143,6 +156,14 @@ export function App() {
 
   useEffect(() => {
     try {
+      localStorage.setItem('kaffiika_team_v1', JSON.stringify(team));
+    } catch {
+      // ignore
+    }
+  }, [team]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('kaffiika_orders_v2', JSON.stringify(orders));
     } catch {
       // ignore
@@ -171,19 +192,73 @@ export function App() {
     setMobileMenuOpen(false);
   };
 
-  // Modal & Quote Drawer State
+  // Auth, Modal & Quote Drawer State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    try {
+      const raw = localStorage.getItem('kaffiika_current_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(
     null
   );
   const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState<boolean>(false);
-  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([
-    { product: PRODUCTS.find((p) => p.id === 4)!, quantity: 2 },
-    { product: PRODUCTS.find((p) => p.id === 1)!, quantity: 1 },
-  ]);
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [selectedBranchId, setSelectedBranchId] =
     useState<string>('hq-kampala');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      if (currentUser) localStorage.setItem('kaffiika_current_user', JSON.stringify(currentUser));
+      else localStorage.removeItem('kaffiika_current_user');
+    } catch {}
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setQuoteItems([]);
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(`kaffiika_quote_${currentUser.id}`);
+      const saved: { productId: number; quantity: number }[] = raw ? JSON.parse(raw) : [];
+      const restored: QuoteItem[] = saved
+        .map((s) => {
+          const product = products.find((p) => p.id === s.productId);
+          return product ? { product, quantity: Math.max(1, Number(s.quantity) || 1) } : null;
+        })
+        .filter(Boolean) as QuoteItem[];
+      setQuoteItems(restored);
+    } catch {
+      setQuoteItems([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    try {
+      const payload = quoteItems.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+      localStorage.setItem(`kaffiika_quote_${currentUser.id}`, JSON.stringify(payload));
+    } catch {}
+  }, [quoteItems, currentUser]);
+
+  const handleAuth = (user: AuthUser) => {
+    setCurrentUser(user);
+    triggerToast(`Signed in as ${user.name}`);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setQuoteItems([]);
+    setIsQuoteDrawerOpen(false);
+    triggerToast('You have been signed out.');
+  };
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -193,6 +268,11 @@ export function App() {
   };
 
   const handleAddToQuote = (product: Product, quantity = 1) => {
+    if (!currentUser) {
+      triggerToast('Please sign in to save products to your quote.');
+      setIsAuthModalOpen(true);
+      return;
+    }
     setQuoteItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
@@ -210,6 +290,11 @@ export function App() {
   const handleAddMultipleToQuote = (
     newItems: { product: Product; quantity: number }[]
   ) => {
+    if (!currentUser) {
+      triggerToast('Please sign in to save products to your quote.');
+      setIsAuthModalOpen(true);
+      return;
+    }
     setQuoteItems((prev) => {
       const updated = [...prev];
       newItems.forEach(({ product, quantity }) => {
@@ -299,15 +384,27 @@ export function App() {
     setBlogs((prev) => prev.filter((b) => b.id !== blogId));
   };
 
+  const handleUpdateTeamMember = (updated: TeamMember) => {
+    setTeam((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+  };
+  const handleAddTeamMember = (member: TeamMember) => {
+    setTeam((prev) => [member, ...prev]);
+  };
+  const handleDeleteTeamMember = (id: string) => {
+    setTeam((prev) => prev.filter((m) => m.id !== id));
+  };
+
   const handleResetAllData = () => {
     setProducts(PRODUCTS);
     setBranches(BRANCHES);
     setBlogs(BLOG_POSTS);
     setOrders(INITIAL_ORDERS);
+    setTeam(TEAM_MEMBERS);
     localStorage.removeItem('kaffiika_products_v2');
     localStorage.removeItem('kaffiika_branches_v2');
     localStorage.removeItem('kaffiika_blogs_v2');
     localStorage.removeItem('kaffiika_orders_v2');
+    localStorage.removeItem('kaffiika_team_v1');
   };
 
   const totalQuoteBags = quoteItems.reduce((sum, i) => sum + i.quantity, 0);
@@ -360,19 +457,11 @@ export function App() {
             </a>
 
             <a
-              href="#/admin.html"
-              onClick={(e) => {
-                e.preventDefault();
-                handleNavigate('admin.html');
-              }}
-              className={`inline-flex items-center gap-1.5 font-mono-tech font-bold px-2.5 py-1 rounded-md border transition-colors ${
-                currentPage === 'admin.html'
-                  ? 'bg-[#F59E0B] text-[#061A36] border-[#F59E0B]'
-                  : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
-              }`}
+              href={`tel:${COMPANY_INFO.primaryPhone}`}
+              className="hidden md:inline-flex items-center gap-1.5 font-semibold text-sky-100 hover:text-white transition-colors"
             >
-              <Shield className="w-3 h-3" />
-              <span>Admin Portal</span>
+              <Phone className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span>Call Sales Desk</span>
             </a>
           </div>
         </div>
@@ -440,8 +529,25 @@ export function App() {
             })}
           </nav>
 
-          {/* Right Action Controls: Quote Drawer & Mobile Menu */}
+          {/* Right Action Controls: Auth, Quote Drawer & Mobile Menu */}
           <div className="flex items-center gap-2.5">
+            {currentUser ? (
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E6EFF8] text-[#0A1E3C] text-xs font-bold max-w-[180px]">
+                  <User className="w-4 h-4 text-[#065AA7]" />
+                  <span className="truncate">{currentUser.name}</span>
+                </span>
+                <button type="button" onClick={handleLogout} className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer" aria-label="Sign out" title="Sign out">
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setIsAuthModalOpen(true)} className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs sm:text-sm font-bold cursor-pointer">
+                <LogIn className="w-4 h-4" />
+                <span>Sign In</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsQuoteDrawerOpen(true)}
@@ -492,23 +598,22 @@ export function App() {
                   }`}
                 >
                   <span>{item.label}</span>
-                  <span className="font-mono-tech text-xs opacity-75">
-                    {item.route}
-                  </span>
                 </a>
               );
             })}
-            <a
-              href="#/admin.html"
-              onClick={(e) => {
-                e.preventDefault();
-                handleNavigate('admin.html');
-              }}
-              className="flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#061A36] text-[#F59E0B]"
-            >
-              <span>Admin Management Portal</span>
-              <span className="font-mono-tech text-xs">admin.html</span>
-            </a>
+            <div className="pt-2 border-t border-sky-100 mt-2">
+              {currentUser ? (
+                <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 cursor-pointer">
+                  <span>Sign Out ({currentUser.name})</span>
+                  <LogOut className="w-4 h-4" />
+                </button>
+              ) : (
+                <button type="button" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#065AA7] text-white cursor-pointer">
+                  <span>Sign In / Create Account</span>
+                  <LogIn className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         )}
       </header>
@@ -526,7 +631,7 @@ export function App() {
         )}
 
         {currentPage === 'about.html' && (
-          <AboutPage team={TEAM_MEMBERS} onNavigate={handleNavigate} />
+          <AboutPage team={team} onNavigate={handleNavigate} />
         )}
 
         {currentPage === 'products.html' && (
@@ -585,6 +690,7 @@ export function App() {
             branches={branches}
             blogs={blogs}
             orders={orders}
+            team={team}
             onUpdateProduct={handleUpdateProduct}
             onAddProduct={handleAddProduct}
             onDeleteProduct={handleDeleteProduct}
@@ -595,6 +701,9 @@ export function App() {
             onDeleteBranch={handleDeleteBranch}
             onAddBlog={handleAddBlog}
             onDeleteBlog={handleDeleteBlog}
+            onUpdateTeamMember={handleUpdateTeamMember}
+            onAddTeamMember={handleAddTeamMember}
+            onDeleteTeamMember={handleDeleteTeamMember}
             onResetAllData={handleResetAllData}
             onNavigate={handleNavigate}
           />
@@ -655,7 +764,7 @@ export function App() {
             {/* Col 2: Quick Links to .html Pages (3 cols) */}
             <div className="lg:col-span-3 space-y-2 text-xs sm:text-sm">
               <h4 className="text-xs font-mono-tech uppercase tracking-wider text-[#F59E0B] font-bold mb-3">
-                Website Pages (.html)
+                Quick Links
               </h4>
               {NAV_PAGES.map((p) => (
                 <a
@@ -667,7 +776,7 @@ export function App() {
                   }}
                   className="block text-sky-200 hover:text-white transition-colors"
                 >
-                  {p.label} ({p.route})
+                  {p.label}
                 </a>
               ))}
               <a
@@ -676,9 +785,11 @@ export function App() {
                   e.preventDefault();
                   handleNavigate('admin.html');
                 }}
-                className="block text-[#F59E0B] hover:underline font-bold pt-1"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-[#F59E0B] border border-white/15 transition-colors mt-2"
+                aria-label="Admin"
+                title="Admin"
               >
-                Admin Management Portal (admin.html)
+                <Shield className="w-4 h-4" />
               </a>
               <div className="pt-2 space-y-1.5 border-t border-white/10 mt-2">
                 <a href="#/privacy-policy.html" onClick={(e) => { e.preventDefault(); handleNavigate('privacy-policy.html'); }} className="block text-sky-200 hover:text-white transition-colors">Privacy Policy</a>
@@ -801,6 +912,12 @@ export function App() {
         selectedBranchId={selectedBranchId}
         onSelectBranch={setSelectedBranchId}
         onCreateOrder={handleCreateOrder}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuth={handleAuth}
       />
     </div>
   );
