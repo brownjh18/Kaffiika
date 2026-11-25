@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #F4F7FB;
+    --bg-secondary: #E6EFF8;
+    --text-primary: #0A1E3C;
+    --text-secondary: #475569;
+    --accent-primary: #065AA7;
+    --accent-secondary: #0284C7;
+    --accent-gold: #F59E0B;
+    --navy-dark: #071A33;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #F4F7FB;
+    color: #0A1E3C;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-serif-display {
+    font-family: 'Fraunces', Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono-tech {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.bg-blue-mesh {
+  background: radial-gradient(circle at 85% 15%, rgba(2, 132, 199, 0.35) 0%, transparent 45%),
+              radial-gradient(circle at 12% 85%, rgba(245, 158, 11, 0.15) 0%, transparent 45%),
+              linear-gradient(135deg, #061A36 0%, #065AA7 60%, #042B59 100%);
+}
+
+.bg-kaffiika-breadcrumb {
+  background-image: linear-gradient(135deg, rgba(6, 26, 54, 0.88) 0%, rgba(6, 90, 167, 0.82) 100%),
+                    url('https://kaffiikafeeds.com/public/assets/frontend/images/breadcrumb-bg.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.bg-kaffiika-parallax {
+  background-image: linear-gradient(135deg, rgba(6, 26, 54, 0.90) 0%, rgba(6, 90, 167, 0.84) 100%),
+                    url('https://kaffiikafeeds.com/public/assets/frontend/images/parallax-img_2048x.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Custom subtle scrollbars in corporate blue */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #E6EFF8;
+}
+::-webkit-scrollbar-thumb {
+  background: #94A3B8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #065AA7;
+}
