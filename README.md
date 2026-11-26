@@ -63,9 +63,30 @@ Set `VITE_GOOGLE_CLIENT_ID` (frontend) and `GOOGLE_CLIENT_ID` (backend verificat
 - Admin can manage products, branches, blogs, team, users, orders, and view system activity logs.
 - Reset-defaults/lock controls were replaced by audit logs and admin sign-out.
 
+## Single deployment (frontend + backend together)
+
+The backend can serve the built frontend from `dist/`, so you can deploy as one Node service.
+
+**Build command**
+```bash
+npm ci && npm run build
+```
+
+**Start command**
+```bash
+npm start
+```
+
+**Environment variables**
+- `JWT_SECRET` (required, strong random value)
+- `ADMIN_EMAIL` (default `admin@kaffiikafeeds.com`)
+- `ADMIN_DEFAULT_PASSWORD` (default `admin123`, change after first login)
+- `DB_PATH` (set to a persistent disk path on your host, e.g. `/var/data/app.sqlite`)
+- `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_ID` (same Google OAuth Web Client ID)
+- `CORS_ORIGIN` (optional when same origin; set if using custom domains)
+
+Works well on Render/Railway/Fly/VPS with a persistent disk. **Vercel static hosting alone is not enough** for this SQLite/Express backend; use a Node host or split into Vercel frontend + external backend with `VITE_API_URL`.
+
 ## Deployment notes
 
-- The frontend is Vite static and includes `vercel.json` rewrites for SPA routes.
-- The backend is a Node/Express server; deploy it to a Node-capable host (Render/Railway/Fly/VM/VPS/etc.) or adapt to serverless + managed DB.
-- If frontend and backend are on different domains, set `VITE_API_URL=https://your-backend-domain` in the frontend build env and set backend `CORS_ORIGIN` accordingly.
-- For production, use a strong `JWT_SECRET`, HTTPS, a managed persistent database, and a real email provider for verification codes.
+- For production, use HTTPS, a strong `JWT_SECRET`, a managed persistent database, rate limiting/monitoring, and a real email provider for verification codes.
