@@ -966,6 +966,7 @@ export function App() {
         selectedBranchId={selectedBranchId}
         onSelectBranch={setSelectedBranchId}
         onCreateOrder={handleCreateOrder}
+        currentUser={currentUser}
       />
 
       <AuthModal

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -22,6 +22,10 @@ import {
   Settings,
   Upload,
   User,
+  Users,
+  Mail,
+  Phone,
+  Eye,
 } from 'lucide-react';
 import {
   Product,
@@ -93,8 +97,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newAdminPassword, setNewAdminPassword] = useState('');
 
   const [activeModule, setActiveModule] = useState<
-    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'settings'
+    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'settings'
   >('dashboard');
+
+  const [users, setUsers] = useState<any[]>(() => {
+    try {
+      const raw = localStorage.getItem('kaffiika_users_v1');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (activeModule === 'users') {
+      try {
+        const raw = localStorage.getItem('kaffiika_users_v1');
+        setUsers(raw ? JSON.parse(raw) : []);
+      } catch {
+        setUsers([]);
+      }
+    }
+  }, [activeModule]);
 
   // Product Management State
   const [productSearch, setProductSearch] = useState('');
@@ -451,6 +475,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               id: 'team',
               label: `Team Managers (${team.length})`,
               icon: User,
+            },
+            {
+              id: 'users',
+              label: `Users (${users.length})`,
+              icon: Users,
             },
             {
               id: 'settings',
@@ -1140,11 +1169,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <span className="font-mono-tech text-xs text-slate-500">
                           ({order.customerPhone})
                         </span>
+                        {order.customerEmail && (
+                          <span className="text-xs text-slate-500 inline-flex items-center gap-1">
+                            <Mail className="w-3.5 h-3.5" /> {order.customerEmail}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-slate-600 mt-1">
                         Assigned Branch: <strong>{order.branchName}</strong> •{' '}
                         <strong>{order.deliveryMode}</strong> • Created:{' '}
                         <span className="font-mono-tech">{order.createdAt}</span>
+                        {order.userId && <span className="ml-2 font-mono-tech text-slate-400">User: {order.userId}</span>}
                       </div>
                     </div>
 
@@ -1614,6 +1649,103 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeModule === 'users' && (
+          <div className="space-y-5">
+            <div className="bg-white p-5 rounded-2xl border border-sky-200 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-bold text-[#0A1E3C]">Registered Users ({users.length})</h3>
+                <p className="text-xs text-slate-500">Accounts that signed up/sign in on the website. Passwords are never shown.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const raw = localStorage.getItem('kaffiika_users_v1');
+                    setUsers(raw ? JSON.parse(raw) : []);
+                    notify('User list refreshed.');
+                  } catch { setUsers([]); }
+                }}
+                className="px-4 py-2 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs font-bold cursor-pointer"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {users.length === 0 ? (
+              <div className="bg-white p-8 rounded-2xl border border-sky-200 text-center text-slate-500 text-sm">No registered users yet.</div>
+            ) : (
+              <div className="space-y-4">
+                {users.map((u: any) => {
+                  const userOrders = orders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
+                  return (
+                    <div key={u.id || u.email} className="bg-white rounded-2xl border border-sky-200 p-5 shadow-2xs">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 min-w-0">
+                          {u.photoUrl ? (
+                            <img src={u.photoUrl} alt={u.name || 'User'} className="w-14 h-14 rounded-xl object-cover border border-sky-200 bg-slate-100" />
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-[#E6EFF8] border border-sky-200 flex items-center justify-center text-[#065AA7]">
+                              <User className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="font-bold text-[#0A1E3C]">{u.name || 'Unnamed User'}</h4>
+                              <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${u.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {u.verified ? 'VERIFIED' : 'UNVERIFIED'}
+                              </span>
+                              <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full bg-sky-100 text-[#065AA7]">
+                                {String(u.provider || 'email').toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-600 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                              <span className="inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{u.email}</span>
+                              {u.id && <span className="font-mono-tech text-slate-400">ID: {u.id}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-slate-500">Orders</div>
+                          <div className="font-mono-tech text-lg font-bold text-[#065AA7]">{userOrders.length}</div>
+                          <div className="text-[11px] text-slate-500">UGX {userOrders.reduce((s, o) => s + o.totalAmountUgx, 0).toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-sky-100">
+                        <div className="text-xs font-bold text-slate-600 mb-2">Order History</div>
+                        {userOrders.length === 0 ? (
+                          <div className="text-xs text-slate-400">No orders placed by this user yet.</div>
+                        ) : (
+                          <div className="space-y-2">
+                            {userOrders.map((o) => (
+                              <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 text-xs">
+                                <div>
+                                  <span className="font-mono-tech font-bold text-[#065AA7]">{o.reference}</span>
+                                  <span className="text-slate-500 ml-2">{o.createdAt}</span>
+                                  <div className="text-slate-600 mt-0.5">{o.totalBags} bags • {o.branchName} • {o.deliveryMode}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                    o.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                    o.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' :
+                                    o.status === 'Processing' ? 'bg-amber-100 text-amber-700' :
+                                    'bg-slate-100 text-slate-700'
+                                  }`}>{o.status}</span>
+                                  <span className="font-mono-tech font-bold text-[#0A1E3C]">UGX {o.totalAmountUgx.toLocaleString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

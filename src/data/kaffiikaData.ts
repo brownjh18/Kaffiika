@@ -114,8 +114,10 @@ export interface BlogPost {
 export interface CustomerOrder {
   id: string;
   reference: string;
+  userId?: string;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   branchId: string;
   branchName: string;
   deliveryMode: 'Branch Pickup' | 'Farm Delivery';

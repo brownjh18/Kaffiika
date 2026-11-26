@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Trash2,
@@ -17,6 +17,7 @@ import {
   COMPANY_INFO,
   CustomerOrder,
 } from '../data/kaffiikaData';
+import type { AuthUser } from './AuthModal';
 
 export interface QuoteItem {
   product: Product;
@@ -34,6 +35,7 @@ interface QuoteDrawerProps {
   selectedBranchId: string;
   onSelectBranch: (branchId: string) => void;
   onCreateOrder: (order: CustomerOrder) => void;
+  currentUser?: AuthUser | null;
 }
 
 export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
@@ -47,13 +49,22 @@ export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
   selectedBranchId,
   onSelectBranch,
   onCreateOrder,
+  currentUser,
 }) => {
   const [farmerName, setFarmerName] = useState('');
   const [farmerPhone, setFarmerPhone] = useState('');
+  const [farmerEmail, setFarmerEmail] = useState('');
   const [deliveryMode, setDeliveryMode] = useState<'Branch Pickup' | 'Farm Delivery'>(
     'Branch Pickup'
   );
   const [submittedOrderRef, setSubmittedOrderRef] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      setFarmerName((v) => v || currentUser.name || '');
+      setFarmerEmail((v) => v || currentUser.email || '');
+    }
+  }, [currentUser]);
 
   if (!isOpen) return null;
 
@@ -84,6 +95,7 @@ export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
       `Fulfillment: ${deliveryMode}`,
       farmerName ? `Farmer/Farm: ${farmerName}` : '',
       farmerPhone ? `Contact: ${farmerPhone}` : '',
+      farmerEmail ? `Email: ${farmerEmail}` : '',
       ``,
       `*Ordered Feed Bags:*`,
       ...items.map(
@@ -116,8 +128,10 @@ export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
     const newOrder: CustomerOrder = {
       id: `ord-${Date.now()}`,
       reference: ref,
-      customerName: farmerName.trim() || 'Walk-in / Online Farmer',
+      userId: currentUser?.id,
+      customerName: farmerName.trim() || currentUser?.name || 'Walk-in / Online Farmer',
       customerPhone: farmerPhone.trim() || '+256 782 478 743',
+      customerEmail: farmerEmail.trim() || currentUser?.email || undefined,
       branchId: selectedBranch.id,
       branchName: selectedBranch.name,
       deliveryMode,
@@ -393,6 +407,18 @@ export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
                     onChange={(e) => setFarmerPhone(e.target.value)}
                     placeholder="e.g. +256 772 000 000"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-sky-300 text-sm font-mono-tech"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={farmerEmail}
+                    onChange={(e) => setFarmerEmail(e.target.value)}
+                    placeholder="e.g. farmer@email.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-sky-300 text-sm"
                   />
                 </div>
 
