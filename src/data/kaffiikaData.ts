@@ -9,18 +9,18 @@ export type FeedCategory =
   | 'Speciality Products';
 
 export type PageRoute =
-  | 'index.html'
-  | 'about.html'
-  | 'products.html'
-  | 'farming-guides.html'
-  | 'calculator.html'
-  | 'branches.html'
-  | 'media-gallery.html'
-  | 'contact.html'
-  | 'admin.html'
-  | 'privacy-policy.html'
-  | 'terms.html'
-  | 'delivery-policy.html';
+  | '/'
+  | '/about'
+  | '/products'
+  | '/farming-guides'
+  | '/calculator'
+  | '/branches'
+  | '/media-gallery'
+  | '/contact'
+  | '/admin'
+  | '/privacy-policy'
+  | '/terms'
+  | '/delivery-policy';
 
 export interface Product {
   id: number;
@@ -1513,7 +1513,7 @@ export const SPECIES_GUIDES: SpeciesGuide[] = [
   {
     id: 'poultry',
     species: 'Poultry Farming',
-    navSlug: 'poultry.html',
+    navSlug: 'poultry',
     tagline: 'From Day Old Chicks (Galdus 2.2mm) to >55g/Day Broilers & >95% Peak Layers',
     heroImage: KAFFIIKA_ASSETS.productUploads.layers,
     intro:
@@ -1564,7 +1564,7 @@ export const SPECIES_GUIDES: SpeciesGuide[] = [
   {
     id: 'piggery',
     species: 'Piggery Farming',
-    navSlug: 'piggery.html',
+    navSlug: 'piggery',
     tagline: 'Well-Balanced Rations for Piglets, Productive Sows & Fast Fattening',
     heroImage: KAFFIIKA_ASSETS.productUploads.knursemeal,
     intro:
@@ -1610,7 +1610,7 @@ export const SPECIES_GUIDES: SpeciesGuide[] = [
   {
     id: 'ruminants',
     species: 'Ruminants (Dairy & Beef)',
-    navSlug: 'ruminants.html',
+    navSlug: 'ruminants',
     tagline: 'Rearing Calves, Lactating Dairy Cows & Beef Cattle Solutions',
     heroImage: KAFFIIKA_ASSETS.productUploads.cows,
     intro:
@@ -1670,7 +1670,7 @@ export const SPECIES_GUIDES: SpeciesGuide[] = [
   {
     id: 'aqua',
     species: 'Aqua (Tilapia & Catfish)',
-    navSlug: 'aqua.html',
+    navSlug: 'aqua',
     tagline: 'State-of-the-Art Extruded Fish Feeds Backed by Koudijs Global Expertise',
     heroImage: KAFFIIKA_ASSETS.productUploads.tilapia,
     intro:

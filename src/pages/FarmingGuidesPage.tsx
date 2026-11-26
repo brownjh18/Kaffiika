@@ -19,7 +19,7 @@ export const FarmingGuidesPage: React.FC<FarmingGuidesPageProps> = ({
       <PageHeaderBanner
         title="Livestock & Aquaculture Farming Guides"
         subtitle="Phase-specific nutritional protocols for Poultry (Chicks, Broilers, Layers), Piggery (Piglets, Sows, Fattening), Ruminants (Calves, Dairy, Beef), and Aqua (Tilapia & Catfish)."
-        currentPage="farming-guides.html"
+        currentPage="/farming-guides"
         badgeText="POULTRY • PIGGERY • RUMINANTS • AQUA"
         onNavigate={onNavigate}
       />

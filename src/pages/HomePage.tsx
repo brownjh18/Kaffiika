@@ -135,10 +135,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Multi-Page Links */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
-                href="#/products.html"
+                href="/products"
                 onClick={(e) => {
                   e.preventDefault();
-                  onNavigate('products.html');
+                  onNavigate('/products');
                 }}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-sm sm:text-base shadow-lg border border-sky-400/30 transition-all"
               >
@@ -147,10 +147,10 @@ export const HomePage: React.FC<HomePageProps> = ({
               </a>
 
               <a
-                href="#/calculator.html"
+                href="/calculator"
                 onClick={(e) => {
                   e.preventDefault();
-                  onNavigate('calculator.html');
+                  onNavigate('/calculator');
                 }}
                 className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm sm:text-base shadow-md transition-all"
               >
@@ -159,10 +159,10 @@ export const HomePage: React.FC<HomePageProps> = ({
               </a>
 
               <a
-                href="#/branches.html"
+                href="/branches"
                 onClick={(e) => {
                   e.preventDefault();
-                  onNavigate('branches.html');
+                  onNavigate('/branches');
                 }}
                 className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-sm transition-all"
               >
@@ -180,10 +180,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {HOME_CATEGORIES.map((cat) => (
                   <a
                     key={cat}
-                    href={`#/products.html?category=${encodeURIComponent(cat)}`}
+                    href={`/products?category=${encodeURIComponent(cat)}`}
                     onClick={(e) => {
                       e.preventDefault();
-                      onNavigate('products.html', cat);
+                      onNavigate('/products', cat);
                     }}
                     className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#065AA7] text-white border border-sky-300/25 text-xs font-bold transition-all"
                   >
@@ -279,10 +279,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           <a
-            href="#/products.html"
+            href="/products"
             onClick={(e) => {
               e.preventDefault();
-              onNavigate('products.html');
+              onNavigate('/products');
             }}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-xs sm:text-sm shadow-sm transition-colors self-start lg:self-auto"
           >
@@ -396,10 +396,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         <div className="mt-8 text-center">
           <a
-            href={`#/products.html?category=${encodeURIComponent(activeTabCategory)}`}
+            href={`/products?category=${encodeURIComponent(activeTabCategory)}`}
             onClick={(e) => {
               e.preventDefault();
-              onNavigate('products.html', activeTabCategory);
+              onNavigate('/products', activeTabCategory);
             }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#E6EFF8] hover:bg-[#065AA7] hover:text-white text-[#065AA7] font-bold text-sm border border-sky-300 transition-colors"
           >
@@ -431,10 +431,10 @@ export const HomePage: React.FC<HomePageProps> = ({
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <a
-                  href="#/branches.html"
+                  href="/branches"
                   onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('branches.html');
+                    onNavigate('/branches');
                   }}
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm shadow-lg transition-all"
                 >
@@ -442,10 +442,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <span>Visit Our Head Office</span>
                 </a>
                 <a
-                  href="#/farming-guides.html"
+                  href="/farming-guides"
                   onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('farming-guides.html');
+                    onNavigate('/farming-guides');
                   }}
                   className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 font-bold text-sm transition-all"
                 >
@@ -537,10 +537,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             </h2>
           </div>
           <a
-            href="#/media-gallery.html"
+            href="/media-gallery"
             onClick={(e) => {
               e.preventDefault();
-              onNavigate('media-gallery.html');
+              onNavigate('/media-gallery');
             }}
             className="inline-flex items-center gap-1.5 text-sm font-bold text-[#065AA7] hover:underline"
           >
@@ -553,7 +553,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           {blogs.slice(0, 3).map((post) => (
             <article
               key={post.id}
-              onClick={() => onNavigate('media-gallery.html')}
+              onClick={() => onNavigate('/media-gallery')}
               className="bg-white rounded-2xl border border-sky-200 overflow-hidden shadow-xs hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between group"
             >
               <div>

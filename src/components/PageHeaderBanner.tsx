@@ -11,18 +11,18 @@ interface PageHeaderBannerProps {
 }
 
 const ROUTE_LABELS: Partial<Record<PageRoute, string>> = {
-  'index.html': 'Home',
-  'about.html': 'About Us',
-  'products.html': 'Our Products',
-  'farming-guides.html': 'Farming Guides',
-  'calculator.html': 'Ration Calculator',
-  'branches.html': 'Head Office',
-  'media-gallery.html': 'Blogs & Media',
-  'contact.html': 'Contact Us',
-  'admin.html': 'Admin',
-  'privacy-policy.html': 'Privacy Policy',
-  'terms.html': 'Terms & Conditions',
-  'delivery-policy.html': 'Delivery & Pickup Policy',
+  '/': 'Home',
+  '/about': 'About Us',
+  '/products': 'Our Products',
+  '/farming-guides': 'Farming Guides',
+  '/calculator': 'Ration Calculator',
+  '/branches': 'Head Office',
+  '/media-gallery': 'Blogs & Media',
+  '/contact': 'Contact Us',
+  '/admin': 'Admin',
+  '/privacy-policy': 'Privacy Policy',
+  '/terms': 'Terms & Conditions',
+  '/delivery-policy': 'Delivery & Pickup Policy',
 };
 
 export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
@@ -42,10 +42,10 @@ export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#061A36]/75 backdrop-blur-md border border-white/15 text-xs font-mono-tech mb-4"
         >
           <a
-            href="#/index.html"
+            href="/"
             onClick={(e) => {
               e.preventDefault();
-              onNavigate('index.html');
+              onNavigate('/');
             }}
             className="inline-flex items-center gap-1.5 text-sky-300 hover:text-white transition-colors"
           >

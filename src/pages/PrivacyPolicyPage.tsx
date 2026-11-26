@@ -6,7 +6,7 @@ interface Props { onNavigate: (page: PageRoute) => void; }
 
 export const PrivacyPolicyPage: React.FC<Props> = ({ onNavigate }) => (
   <div className="min-h-screen bg-[#F4F7FB]">
-    <PageHeaderBanner title="Privacy Policy" subtitle="How Kaffiika Animal Feeds collects, uses, and protects your information." currentPage="privacy-policy.html" badgeText="LEGAL & TRUST" onNavigate={onNavigate} />
+    <PageHeaderBanner title="Privacy Policy" subtitle="How Kaffiika Animal Feeds collects, uses, and protects your information." currentPage="/privacy-policy" badgeText="LEGAL & TRUST" onNavigate={onNavigate} />
     <div className="max-w-[980px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="bg-white rounded-2xl border border-sky-200 shadow-xs p-6 sm:p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
         <p><strong>Last updated:</strong> November 25, 2026</p>

@@ -373,10 +373,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
           <div className="flex items-center gap-2.5">
             <a
-              href="#/products.html"
+              href="/products"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('products.html');
+                onNavigate('/products');
               }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-sky-200 border border-white/15"
             >

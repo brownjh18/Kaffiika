@@ -19,7 +19,7 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({
       <PageHeaderBanner
         title="On-Farm Ration & Concentrate Mixing Calculator"
         subtitle="Calculate exact Koudijs concentrate, broken maize, maize bran, soya, and limestone ratios for any batch size from 100 kg to 5 Tons."
-        currentPage="calculator.html"
+        currentPage="/calculator"
         badgeText="INTERACTIVE FEED FORMULATION TOOL"
         onNavigate={onNavigate}
       />

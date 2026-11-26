@@ -28,7 +28,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
       <PageHeaderBanner
         title="About Us — Kaffiika Animal Feeds"
         subtitle="Kaffiika Animal Feeds has been in the Poultry and Animal Feeds business in Uganda and active poultry keeping since the year 2006."
-        currentPage="about.html"
+        currentPage="/about"
         badgeText="HERITAGE, MISSION, VISION & LEADERSHIP TEAM"
         onNavigate={onNavigate}
       />
@@ -206,10 +206,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
           </div>
           <div className="flex flex-wrap gap-3 shrink-0">
             <a
-              href="#/products.html"
+              href="/products"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('products.html');
+                onNavigate('/products');
               }}
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-sm"
             >
@@ -217,10 +217,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
               <ArrowRight className="w-4 h-4" />
             </a>
             <a
-              href="#/branches.html"
+              href="/branches"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('branches.html');
+                onNavigate('/branches');
               }}
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm"
             >

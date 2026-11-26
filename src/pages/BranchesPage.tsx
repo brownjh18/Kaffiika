@@ -21,7 +21,7 @@ export const BranchesPage: React.FC<BranchesPageProps> = ({
       <PageHeaderBanner
         title="Our Branches — Find a Shop or Agent Near You"
         subtitle={`Visit our Headoffice at ${COMPANY_INFO.headquarters} for product inquiries, orders, and technical support.`}
-        currentPage="branches.html"
+        currentPage="/branches"
         badgeText="HEAD OFFICE LOCATION"
         onNavigate={onNavigate}
       />

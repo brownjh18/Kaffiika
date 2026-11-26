@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://kaffiikafeeds.com/</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/index.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/about.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/products.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/farming-guides.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/calculator.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/branches.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/media-gallery.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/contact.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/privacy-policy.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/terms.html</loc></url>
-  <url><loc>https://kaffiikafeeds.com/#/delivery-policy.html</loc></url>
+  <url><loc>https://kaffiikafeeds.com/about</loc></url>
+  <url><loc>https://kaffiikafeeds.com/products</loc></url>
+  <url><loc>https://kaffiikafeeds.com/farming-guides</loc></url>
+  <url><loc>https://kaffiikafeeds.com/calculator</loc></url>
+  <url><loc>https://kaffiikafeeds.com/branches</loc></url>
+  <url><loc>https://kaffiikafeeds.com/media-gallery</loc></url>
+  <url><loc>https://kaffiikafeeds.com/contact</loc></url>
+  <url><loc>https://kaffiikafeeds.com/privacy-policy</loc></url>
+  <url><loc>https://kaffiikafeeds.com/terms</loc></url>
+  <url><loc>https://kaffiikafeeds.com/delivery-policy</loc></url>
 </urlset>

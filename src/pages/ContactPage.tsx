@@ -44,7 +44,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
       <PageHeaderBanner
         title="Contact Us — Kaffiika Animal Feeds"
         subtitle={`Reach our Headoffice at ${COMPANY_INFO.headquarters} or connect with our technical & wholesale sales desk.`}
-        currentPage="contact.html"
+        currentPage="/contact"
         badgeText="HEADQUARTERS & FARMER SUPPORT DESK"
         onNavigate={onNavigate}
       />
@@ -170,10 +170,10 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
 
               <div className="mt-5 pt-4 border-t border-sky-100">
                 <a
-                  href="#/branches.html"
+                  href="/branches"
                   onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('branches.html');
+                    onNavigate('/branches');
                   }}
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#065AA7] hover:underline"
                 >

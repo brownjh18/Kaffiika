@@ -90,7 +90,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       <PageHeaderBanner
         title="Our Products — Complete Feed Catalog"
         subtitle="Browse all 46 Kaffiika Animal Feeds & Koudijs concentrates for Chicks, Broilers, Layers, Piggery, Dairy, Speciality Products, and Fish with official UGX unit prices."
-        currentPage="products.html"
+        currentPage="/products"
         badgeText="OFFICIAL KAFFIIKA WHOLESALE & RETAIL PRICE LIST"
         onNavigate={onNavigate}
       />

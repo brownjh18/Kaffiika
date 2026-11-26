@@ -32,6 +32,7 @@ import {
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { QuoteDrawer, QuoteItem } from './components/QuoteDrawer';
 import { AuthModal, AuthUser } from './components/AuthModal';
+import { ProfileModal } from './components/ProfileModal';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ProductsPage } from './pages/ProductsPage';
@@ -46,41 +47,62 @@ import { TermsPage } from './pages/TermsPage';
 import { DeliveryPolicyPage } from './pages/DeliveryPolicyPage';
 
 const NAV_PAGES: { route: PageRoute; label: string; badge?: string }[] = [
-  { route: 'index.html', label: 'Home' },
-  { route: 'about.html', label: 'About Us' },
-  { route: 'products.html', label: 'Our Products', badge: '46' },
-  { route: 'farming-guides.html', label: 'Farming Guides' },
-  { route: 'calculator.html', label: 'Ration Calculator' },
-  { route: 'branches.html', label: 'Head Office', badge: 'HQ' },
-  { route: 'media-gallery.html', label: 'Blogs & Media' },
-  { route: 'contact.html', label: 'Contact Us' },
+  { route: '/', label: 'Home' },
+  { route: '/about', label: 'About Us' },
+  { route: '/products', label: 'Our Products', badge: '46' },
+  { route: '/farming-guides', label: 'Farming Guides' },
+  { route: '/calculator', label: 'Ration Calculator' },
+  { route: '/branches', label: 'Head Office', badge: 'HQ' },
+  { route: '/media-gallery', label: 'Blogs & Media' },
+  { route: '/contact', label: 'Contact Us' },
 ];
 
 export function App() {
-  // Parse initial route from window.location.hash
-  const parseHashRoute = (): PageRoute => {
-    const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
-    const validRoutes: PageRoute[] = [
-      'index.html',
-      'about.html',
-      'products.html',
-      'farming-guides.html',
-      'calculator.html',
-      'branches.html',
-      'media-gallery.html',
-      'contact.html',
-      'admin.html',
-      'privacy-policy.html',
-      'terms.html',
-      'delivery-policy.html',
-    ];
-    if (validRoutes.includes(hash as PageRoute)) {
-      return hash as PageRoute;
-    }
-    return 'index.html';
+  const VALID_ROUTES: PageRoute[] = [
+    '/',
+    '/about',
+    '/products',
+    '/farming-guides',
+    '/calculator',
+    '/branches',
+    '/media-gallery',
+    '/contact',
+    '/admin',
+    '/privacy-policy',
+    '/terms',
+    '/delivery-policy',
+  ];
+
+  const normalizeLegacyRoute = (raw: string): string => {
+    const cleaned = raw
+      .replace(/^#\/?/, '')
+      .split('?')[0]
+      .replace(/^\/+/, '')
+      .replace(/\/+$/, '');
+    if (!cleaned || cleaned === 'index.html' || cleaned === 'index') return '/';
+    return '/' + cleaned.replace(/\.html$/i, '');
   };
 
-  const [currentPage, setCurrentPage] = useState<PageRoute>(parseHashRoute);
+  const parseRoute = (): PageRoute => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#')) {
+      const mapped = normalizeLegacyRoute(hash);
+      if (VALID_ROUTES.includes(mapped as PageRoute)) return mapped as PageRoute;
+    }
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (VALID_ROUTES.includes(path as PageRoute)) return path as PageRoute;
+    return '/';
+  };
+
+  const [currentPage, setCurrentPage] = useState<PageRoute>(() => {
+    const initial = parseRoute();
+    if (window.location.hash.startsWith('#')) {
+      window.history.replaceState({}, '', initial);
+    } else if (window.location.pathname !== initial) {
+      window.history.replaceState({}, '', initial);
+    }
+    return initial;
+  });
   const [initialProductCategory, setInitialProductCategory] =
     useState<FeedCategory>('All');
 
@@ -170,24 +192,34 @@ export function App() {
     }
   }, [orders]);
 
-  // Listen to browser back/forward hash navigation
+  // Listen to browser back/forward navigation and legacy hash links
   useEffect(() => {
-    const onHashChange = () => {
-      setCurrentPage(parseHashRoute());
+    const onRouteChange = () => {
+      const next = parseRoute();
+      if (window.location.hash.startsWith('#')) {
+        window.history.replaceState({}, '', next);
+      }
+      setCurrentPage(next);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onRouteChange);
+    window.addEventListener('hashchange', onRouteChange);
+    return () => {
+      window.removeEventListener('popstate', onRouteChange);
+      window.removeEventListener('hashchange', onRouteChange);
+    };
   }, []);
 
   const handleNavigate = (page: PageRoute, categoryFilter?: FeedCategory) => {
     if (categoryFilter) {
       setInitialProductCategory(categoryFilter);
-    } else if (page === 'products.html') {
+    } else if (page === '/products') {
       setInitialProductCategory('All');
     }
+    if (window.location.pathname !== page) {
+      window.history.pushState({}, '', page);
+    }
     setCurrentPage(page);
-    window.location.hash = `#/${page}`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setMobileMenuOpen(false);
   };
@@ -202,6 +234,7 @@ export function App() {
     }
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(
     null
   );
@@ -257,7 +290,16 @@ export function App() {
     setCurrentUser(null);
     setQuoteItems([]);
     setIsQuoteDrawerOpen(false);
+    setIsProfileModalOpen(false);
     triggerToast('You have been signed out.');
+  };
+
+  const handleUpdateProfile = (user: AuthUser) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('kaffiika_current_user', JSON.stringify(user));
+    } catch {}
+    triggerToast('Profile updated.');
   };
 
   const triggerToast = (msg: string) => {
@@ -437,10 +479,10 @@ export function App() {
 
           <div className="flex items-center gap-3">
             <a
-              href="#/branches.html"
+              href="/branches"
               onClick={(e) => {
                 e.preventDefault();
-                handleNavigate('branches.html');
+                handleNavigate('/branches');
               }}
               className="hidden sm:inline-flex items-center gap-1.5 text-sky-300 hover:text-white font-semibold"
             >
@@ -472,10 +514,10 @@ export function App() {
         <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
           {/* Official Kaffiika Logo from https://kaffiikafeeds.com/ */}
           <a
-            href="#/index.html"
+            href="/"
             onClick={(e) => {
               e.preventDefault();
-              handleNavigate('index.html');
+              handleNavigate('/');
             }}
             className="flex items-center gap-3 shrink-0 group"
           >
@@ -494,14 +536,14 @@ export function App() {
             </div>
           </a>
 
-          {/* Desktop Multi-Page Links (.html pages) */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1.5">
             {NAV_PAGES.map((item) => {
               const isActive = currentPage === item.route;
               return (
                 <a
                   key={item.route}
-                  href={`#/${item.route}`}
+                  href={item.route}
                   onClick={(e) => {
                     e.preventDefault();
                     handleNavigate(item.route);
@@ -532,15 +574,21 @@ export function App() {
           {/* Right Action Controls: Auth, Quote Drawer & Mobile Menu */}
           <div className="flex items-center gap-2.5">
             {currentUser ? (
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E6EFF8] text-[#0A1E3C] text-xs font-bold max-w-[180px]">
-                  <User className="w-4 h-4 text-[#065AA7]" />
-                  <span className="truncate">{currentUser.name}</span>
-                </span>
-                <button type="button" onClick={handleLogout} className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer" aria-label="Sign out" title="Sign out">
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(true)}
+                className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#0A1E3C] text-xs font-bold cursor-pointer max-w-[220px]"
+                title="My Profile"
+              >
+                {currentUser.photoUrl ? (
+                  <img src={currentUser.photoUrl} alt={currentUser.name} className="w-8 h-8 rounded-lg object-cover border border-sky-200" />
+                ) : (
+                  <span className="w-8 h-8 rounded-lg bg-[#065AA7] text-white flex items-center justify-center">
+                    <User className="w-4 h-4" />
+                  </span>
+                )}
+                <span className="truncate pr-1">{currentUser.name}</span>
+              </button>
             ) : (
               <button type="button" onClick={() => setIsAuthModalOpen(true)} className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs sm:text-sm font-bold cursor-pointer">
                 <LogIn className="w-4 h-4" />
@@ -586,7 +634,7 @@ export function App() {
               return (
                 <a
                   key={item.route}
-                  href={`#/${item.route}`}
+                  href={item.route}
                   onClick={(e) => {
                     e.preventDefault();
                     handleNavigate(item.route);
@@ -601,12 +649,18 @@ export function App() {
                 </a>
               );
             })}
-            <div className="pt-2 border-t border-sky-100 mt-2">
+            <div className="pt-2 border-t border-sky-100 mt-2 space-y-2">
               {currentUser ? (
-                <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 cursor-pointer">
-                  <span>Sign Out ({currentUser.name})</span>
-                  <LogOut className="w-4 h-4" />
-                </button>
+                <>
+                  <button type="button" onClick={() => { setIsProfileModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#E6EFF8] text-[#065AA7] cursor-pointer">
+                    <span className="truncate">My Profile ({currentUser.name})</span>
+                    <User className="w-4 h-4" />
+                  </button>
+                  <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 cursor-pointer">
+                    <span>Sign Out</span>
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </>
               ) : (
                 <button type="button" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#065AA7] text-white cursor-pointer">
                   <span>Sign In / Create Account</span>
@@ -620,7 +674,7 @@ export function App() {
 
       {/* ==================== MULTI-PAGE ROUTER VIEWPORT ==================== */}
       <main className="flex-1">
-        {currentPage === 'index.html' && (
+        {currentPage === '/' && (
           <HomePage
             products={products}
             blogs={blogs}
@@ -630,11 +684,11 @@ export function App() {
           />
         )}
 
-        {currentPage === 'about.html' && (
+        {currentPage === '/about' && (
           <AboutPage team={team} onNavigate={handleNavigate} />
         )}
 
-        {currentPage === 'products.html' && (
+        {currentPage === '/products' && (
           <ProductsPage
             products={products}
             initialCategory={initialProductCategory}
@@ -644,7 +698,7 @@ export function App() {
           />
         )}
 
-        {currentPage === 'farming-guides.html' && (
+        {currentPage === '/farming-guides' && (
           <FarmingGuidesPage
             products={products}
             onNavigate={handleNavigate}
@@ -652,7 +706,7 @@ export function App() {
           />
         )}
 
-        {currentPage === 'calculator.html' && (
+        {currentPage === '/calculator' && (
           <CalculatorPage
             products={products}
             onNavigate={handleNavigate}
@@ -660,7 +714,7 @@ export function App() {
           />
         )}
 
-        {currentPage === 'branches.html' && (
+        {currentPage === '/branches' && (
           <BranchesPage
             branches={branches}
             selectedBranchId={selectedBranchId}
@@ -676,15 +730,15 @@ export function App() {
           />
         )}
 
-        {currentPage === 'media-gallery.html' && (
+        {currentPage === '/media-gallery' && (
           <MediaBlogPage blogs={blogs} onNavigate={handleNavigate} />
         )}
 
-        {currentPage === 'contact.html' && (
+        {currentPage === '/contact' && (
           <ContactPage onNavigate={handleNavigate} />
         )}
 
-        {currentPage === 'admin.html' && (
+        {currentPage === '/admin' && (
           <AdminPage
             products={products}
             branches={branches}
@@ -709,11 +763,11 @@ export function App() {
           />
         )}
 
-        {currentPage === 'privacy-policy.html' && (
+        {currentPage === '/privacy-policy' && (
           <PrivacyPolicyPage onNavigate={handleNavigate} />
         )}
-        {currentPage === 'terms.html' && <TermsPage onNavigate={handleNavigate} />}
-        {currentPage === 'delivery-policy.html' && (
+        {currentPage === '/terms' && <TermsPage onNavigate={handleNavigate} />}
+        {currentPage === '/delivery-policy' && (
           <DeliveryPolicyPage onNavigate={handleNavigate} />
         )}
       </main>
@@ -761,7 +815,7 @@ export function App() {
               </div>
             </div>
 
-            {/* Col 2: Quick Links to .html Pages (3 cols) */}
+            {/* Col 2: Quick Links */}
             <div className="lg:col-span-3 space-y-2 text-xs sm:text-sm">
               <h4 className="text-xs font-mono-tech uppercase tracking-wider text-[#F59E0B] font-bold mb-3">
                 Quick Links
@@ -769,7 +823,7 @@ export function App() {
               {NAV_PAGES.map((p) => (
                 <a
                   key={p.route}
-                  href={`#/${p.route}`}
+                  href={p.route}
                   onClick={(e) => {
                     e.preventDefault();
                     handleNavigate(p.route);
@@ -780,10 +834,10 @@ export function App() {
                 </a>
               ))}
               <a
-                href="#/admin.html"
+                href="/admin"
                 onClick={(e) => {
                   e.preventDefault();
-                  handleNavigate('admin.html');
+                  handleNavigate('/admin');
                 }}
                 className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-[#F59E0B] border border-white/15 transition-colors mt-2"
                 aria-label="Admin"
@@ -792,9 +846,9 @@ export function App() {
                 <Shield className="w-4 h-4" />
               </a>
               <div className="pt-2 space-y-1.5 border-t border-white/10 mt-2">
-                <a href="#/privacy-policy.html" onClick={(e) => { e.preventDefault(); handleNavigate('privacy-policy.html'); }} className="block text-sky-200 hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#/terms.html" onClick={(e) => { e.preventDefault(); handleNavigate('terms.html'); }} className="block text-sky-200 hover:text-white transition-colors">Terms & Conditions</a>
-                <a href="#/delivery-policy.html" onClick={(e) => { e.preventDefault(); handleNavigate('delivery-policy.html'); }} className="block text-sky-200 hover:text-white transition-colors">Delivery & Pickup Policy</a>
+                <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); handleNavigate('/privacy-policy'); }} className="block text-sky-200 hover:text-white transition-colors">Privacy Policy</a>
+                <a href="/terms" onClick={(e) => { e.preventDefault(); handleNavigate('/terms'); }} className="block text-sky-200 hover:text-white transition-colors">Terms & Conditions</a>
+                <a href="/delivery-policy" onClick={(e) => { e.preventDefault(); handleNavigate('/delivery-policy'); }} className="block text-sky-200 hover:text-white transition-colors">Delivery & Pickup Policy</a>
               </div>
             </div>
 
@@ -816,10 +870,10 @@ export function App() {
               ).map((cat) => (
                 <a
                   key={cat}
-                  href={`#/products.html?category=${encodeURIComponent(cat)}`}
+                  href={`/products?category=${encodeURIComponent(cat)}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    handleNavigate('products.html', cat);
+                    handleNavigate('/products', cat);
                   }}
                   className="block text-sky-200 hover:text-white transition-colors"
                 >
@@ -918,6 +972,14 @@ export function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onAuth={handleAuth}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        user={currentUser}
+        onClose={() => setIsProfileModalOpen(false)}
+        onUpdate={handleUpdateProfile}
+        onLogout={handleLogout}
       />
     </div>
   );

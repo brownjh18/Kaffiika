@@ -38,7 +38,7 @@ export const MediaBlogPage: React.FC<MediaBlogPageProps> = ({
       <PageHeaderBanner
         title="Blogs, Educational Videos & Farm Gallery"
         subtitle="Stay updated with Kaffiika Animal Feeds farmer trainings in Jinja and across Uganda, watch educational feeding videos, and explore our field photo gallery."
-        currentPage="media-gallery.html"
+        currentPage="/media-gallery"
         badgeText="BLOGS • EDUCATIONAL VIDEOS • PHOTO GALLERY"
         onNavigate={onNavigate}
       />
