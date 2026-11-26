@@ -94,7 +94,7 @@ npm start
 - `CORS_ORIGIN` (optional for same-origin; set for custom/cross domains)
 - `VITE_API_URL` (only if frontend and backend are on different domains)
 
-Works on Render/Railway/Fly/VPS. Vercel static hosting alone cannot run the Express backend; use a Node host or split frontend/backend with `VITE_API_URL`.
+Works on Render/Railway/Fly/VPS. It can also be deployed as a single Vercel project (frontend + serverless API) using the included `api/[...path].js` and `vercel.json` rewrites.
 
 ## Deployment notes
 
