@@ -16,7 +16,7 @@ const ROUTE_LABELS: Partial<Record<PageRoute, string>> = {
   '/products': 'Our Products',
   '/farming-guides': 'Farming Guides',
   '/calculator': 'Ration Calculator',
-  '/branches': 'Head Office',
+  '/branches': 'Branches',
   '/media-gallery': 'Blogs & Media',
   '/contact': 'Contact Us',
   '/admin': 'Admin',

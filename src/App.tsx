@@ -52,7 +52,7 @@ const NAV_PAGES: { route: PageRoute; label: string; badge?: string }[] = [
   { route: '/products', label: 'Our Products', badge: '46' },
   { route: '/farming-guides', label: 'Farming Guides' },
   { route: '/calculator', label: 'Ration Calculator' },
-  { route: '/branches', label: 'Head Office', badge: 'HQ' },
+  { route: '/branches', label: 'Branches' },
   { route: '/media-gallery', label: 'Blogs & Media' },
   { route: '/contact', label: 'Contact Us' },
 ];

@@ -167,7 +167,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center gap-2 px-4 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-sm transition-all"
               >
                 <MapPin className="w-4 h-4 text-sky-300" />
-                <span>Visit Head Office</span>
+                <span>Visit Branches</span>
               </a>
             </div>
 
@@ -227,8 +227,8 @@ export const HomePage: React.FC<HomePageProps> = ({
               },
               {
                 icon: KAFFIIKA_ASSETS.services[2],
-                title: 'Kampala Head Office',
-                desc: 'Direct support and distribution from our Mengo, Sentema Road head office',
+                title: 'Branch Network',
+                desc: 'Direct support and distribution from our head office and branches across Uganda',
               },
               {
                 icon: KAFFIIKA_ASSETS.services[3],
@@ -439,7 +439,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm shadow-lg transition-all"
                 >
                   <MapPin className="w-4 h-4" />
-                  <span>Visit Our Head Office</span>
+                  <span>Find a Branch</span>
                 </a>
                 <a
                   href="/farming-guides"

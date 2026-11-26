@@ -224,7 +224,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ team, onNavigate }) => {
               }}
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#061A36] font-bold text-sm"
             >
-              <span>View Head Office</span>
+              <span>View Branches</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

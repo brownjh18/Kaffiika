@@ -178,7 +178,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#065AA7] hover:underline"
                 >
                   <Building2 className="w-4 h-4" />
-                  <span>View Head Office Details</span>
+                  <span>View Branch Details</span>
                 </a>
               </div>
             </div>
@@ -193,7 +193,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
               Request Wholesale Pricing, Distributorship or Farm Advisory
             </h2>
             <p className="text-sm text-slate-600 mt-2 mb-6">
-              Fill out the form below and our Kampala Head Office or nearest regional
+              Fill out the form below and our head office or nearest branch
               sales manager will respond promptly.
             </p>
 
