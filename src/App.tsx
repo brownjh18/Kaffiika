@@ -118,7 +118,7 @@ export function App() {
 
   const [branches, setBranches] = useState<Branch[]>(() => {
     try {
-      const saved = localStorage.getItem('kaffiika_branches_v2');
+      const saved = localStorage.getItem('kaffiika_branches_v4');
       return saved ? JSON.parse(saved) : BRANCHES;
     } catch {
       return BRANCHES;
@@ -162,7 +162,7 @@ export function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kaffiika_branches_v2', JSON.stringify(branches));
+      localStorage.setItem('kaffiika_branches_v4', JSON.stringify(branches));
     } catch {
       // ignore
     }
@@ -443,7 +443,7 @@ export function App() {
     setOrders(INITIAL_ORDERS);
     setTeam(TEAM_MEMBERS);
     localStorage.removeItem('kaffiika_products_v2');
-    localStorage.removeItem('kaffiika_branches_v2');
+    localStorage.removeItem('kaffiika_branches_v4');
     localStorage.removeItem('kaffiika_blogs_v2');
     localStorage.removeItem('kaffiika_orders_v2');
     localStorage.removeItem('kaffiika_team_v1');
