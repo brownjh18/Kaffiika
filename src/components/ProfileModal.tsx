@@ -45,7 +45,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, user, onClos
     if (!file) return;
     if (!file.type.startsWith('image/')) return setError('Please select an image file.');
     if (file.size > 2 * 1024 * 1024) return setError('Profile picture must be under 2MB.');
-    try { setPhotoUrl(await fileToDataUrl(file)); setError(null); } catch { setError('Failed to read image.'); }
+    try {
+      setBusy(true);
+      const dataUrl = await fileToDataUrl(file);
+      const r = await api.upload(dataUrl, 'profiles', file.name, false);
+      setPhotoUrl(r.url);
+      setError(null);
+    } catch (err: any) { setError(err.message || 'Failed to upload image.'); }
+    finally { setBusy(false); }
   };
 
   const handleSave = async (e: React.FormEvent) => {

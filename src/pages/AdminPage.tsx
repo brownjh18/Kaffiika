@@ -200,6 +200,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  const uploadFile = async (file: File, folder: string) => {
+    const dataUrl = await fileToDataUrl(file);
+    const r = await api.upload(dataUrl, folder, file.name, true);
+    return r.url as string;
+  };
 
   // KPIs
   const totalRevenueUgx = adminOrders.reduce((s, o) => s + o.totalAmountUgx, 0);
@@ -907,7 +912,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         tilapia.jpg (Fish / Aqua)
                       </option>
                     </select>
-                    <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewProductForm({ ...newProductForm, imageUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mt-2" />
+                    <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewProductForm({ ...newProductForm, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mt-2" />
                     <p className="text-[11px] text-slate-500 mt-1">Upload an image or choose a preset above.</p>
                   </div>
 
@@ -1522,12 +1527,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Cover Image (upload or URL)</label>
-                  <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewBlogForm({ ...newBlogForm, imageUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mb-2" />
+                  <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, imageUrl: await uploadFile(f, 'blogs') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mb-2" />
                   <input type="text" value={newBlogForm.imageUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, imageUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Video (upload or URL, optional)</label>
-                  <input type="file" accept="video/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setNewBlogForm({ ...newBlogForm, videoUrl: await fileToDataUrl(f) }); }} className="w-full text-xs mb-2" />
+                  <input type="file" accept="video/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, videoUrl: await uploadFile(f, 'blogs/videos') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mb-2" />
                   <input type="text" value={newBlogForm.videoUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, videoUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Video URL (mp4/webm)" />
                 </div>
                 <div>
@@ -1641,7 +1646,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <textarea value={newTeamForm.bio} onChange={(e)=>setNewTeamForm({...newTeamForm,bio:e.target.value})} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Photo (upload or URL)</label>
-                  <input type="file" accept="image/*" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) setNewTeamForm({...newTeamForm, photoUrl: await fileToDataUrl(f)});}} className="w-full text-xs mb-2" />
+                  <input type="file" accept="image/*" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } }}} className="w-full text-xs mb-2" />
                   <input value={newTeamForm.photoUrl} onChange={(e)=>setNewTeamForm({...newTeamForm,photoUrl:e.target.value})} placeholder="Photo URL" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
                 </div>
                 <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>

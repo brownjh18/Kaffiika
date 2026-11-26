@@ -15,10 +15,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^13.2.0",
     "clsx": "2.1.1",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",

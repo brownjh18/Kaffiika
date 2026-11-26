@@ -1,6 +1,6 @@
 ﻿# Kaffiika Animal Feeds Website
 
-Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express + SQLite backend.
+Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express backend using Supabase (Postgres + Storage).
 
 ## Local development
 
@@ -13,14 +13,21 @@ Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express + S
    JWT_SECRET=replace-with-a-long-random-secret
    ADMIN_EMAIL=admin@kaffiikafeeds.com
    ADMIN_DEFAULT_PASSWORD=admin123
+
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_SECRET_KEY=your-supabase-secret-key
+   SUPABASE_STORAGE_BUCKET=media
+
    VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
    ```
-3. Start the backend API:
+3. In Supabase SQL Editor, run `server/schema.sql` to create tables/indexes.
+4. Ensure a Supabase Storage bucket exists (default `media`) and is public for website media reads. The server also attempts to create it on startup if missing.
+5. Start the backend API:
    ```bash
    npm run dev:server
    ```
-4. Start the frontend (in another terminal):
+6. Start the frontend (in another terminal):
    ```bash
    npm run dev -- --host 127.0.0.1 --port 5173
    ```
@@ -28,7 +35,7 @@ Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express + S
 Frontend: http://127.0.0.1:5173  
 API: http://127.0.0.1:3001 (Vite proxies `/api` in dev)
 
-## Production build (frontend)
+## Production build
 
 ```bash
 npm run build
@@ -38,7 +45,8 @@ npm run preview
 ## Backend
 
 - Entry: `server/index.js`
-- DB: SQLite (`DB_PATH`, default `server/data/app.sqlite`)
+- Database: Supabase Postgres (users, orders, products, branches, blogs, team, audit logs)
+- Media: Supabase Storage bucket (`SUPABASE_STORAGE_BUCKET`, default `media`) via `POST /api/uploads`
 - Seeds default products/branches/blogs/team from `server/defaults.json` on first run
 - Seeds default admin user (`ADMIN_EMAIL` / `ADMIN_DEFAULT_PASSWORD`, default `admin123`)
 
@@ -46,6 +54,7 @@ npm run preview
 - `POST /api/auth/register`, `/login`, `/verify`, `/resend-code`, `/google`
 - `GET /api/auth/me`, `PUT /api/auth/profile`
 - `POST /api/orders`, `GET /api/orders/mine`
+- `POST /api/uploads` (authenticated media upload to Supabase Storage)
 - `POST /api/admin/login`
 - `GET /api/admin/users`, `/orders`, `/logs`
 - Admin CRUD: `/api/admin/products|branches|blogs|team`
@@ -58,14 +67,14 @@ Set `VITE_GOOGLE_CLIENT_ID` (frontend) and `GOOGLE_CLIENT_ID` (backend verificat
 
 ## Admin
 
-- Admin dashboard is at `/admin`.
-- Admin signs in with backend admin credentials.
-- Admin can manage products, branches, blogs, team, users, orders, and view system activity logs.
-- Reset-defaults/lock controls were replaced by audit logs and admin sign-out.
+- Admin dashboard: `/admin`
+- Backend-authenticated admin login
+- Manages products, branches, blogs, team, users, orders
+- System activity logs replace reset-defaults/lock controls
 
 ## Single deployment (frontend + backend together)
 
-The backend can serve the built frontend from `dist/`, so you can deploy as one Node service.
+The backend serves the built frontend from `dist/`, so you can deploy as one Node service.
 
 **Build command**
 ```bash
@@ -79,14 +88,16 @@ npm start
 
 **Environment variables**
 - `JWT_SECRET` (required, strong random value)
-- `ADMIN_EMAIL` (default `admin@kaffiikafeeds.com`)
-- `ADMIN_DEFAULT_PASSWORD` (default `admin123`, change after first login)
-- `DB_PATH` (set to a persistent disk path on your host, e.g. `/var/data/app.sqlite`)
-- `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_ID` (same Google OAuth Web Client ID)
-- `CORS_ORIGIN` (optional when same origin; set if using custom domains)
+- `ADMIN_EMAIL` / `ADMIN_DEFAULT_PASSWORD`
+- `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_STORAGE_BUCKET`
+- `VITE_GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_ID`
+- `CORS_ORIGIN` (optional for same-origin; set for custom/cross domains)
+- `VITE_API_URL` (only if frontend and backend are on different domains)
 
-Works well on Render/Railway/Fly/VPS with a persistent disk. **Vercel static hosting alone is not enough** for this SQLite/Express backend; use a Node host or split into Vercel frontend + external backend with `VITE_API_URL`.
+Works on Render/Railway/Fly/VPS. Vercel static hosting alone cannot run the Express backend; use a Node host or split frontend/backend with `VITE_API_URL`.
 
 ## Deployment notes
 
-- For production, use HTTPS, a strong `JWT_SECRET`, a managed persistent database, rate limiting/monitoring, and a real email provider for verification codes.
+- Use HTTPS, strong secrets, and rotate any keys exposed in chat/logs.
+- Supabase handles persistent structured data and media storage.
+- Email verification currently returns demo codes in API/UI; integrate a real email provider for production delivery.
