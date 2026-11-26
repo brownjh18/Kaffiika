@@ -4,7 +4,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { seedDefaults } from './db.js';
+import { seedDefaults, supabase } from './db.js';
 import { publicRouter } from './routes/public.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
@@ -37,7 +37,25 @@ export async function ensureSeeded() {
   return seeded;
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, db: 'supabase' }));
+app.get('/api/health', (_req, res) => {
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  res.json({
+    ok: true,
+    db: 'supabase',
+    supabaseUrl: process.env.SUPABASE_URL || null,
+    hasKey: !!key,
+    keyType: key.startsWith('sb_secret_') ? 'secret' : key.startsWith('sb_publishable_') ? 'publishable' : key ? 'other' : 'missing',
+  });
+});
+
+app.get('/api/health/db', async (_req, res) => {
+  const checks = {};
+  for (const t of ['users', 'products', 'branches', 'blogs', 'team_members', 'orders', 'audit_logs']) {
+    const { error, count } = await supabase.from(t).select('*', { count: 'exact', head: true });
+    checks[t] = error ? { ok: false, message: error.message, code: error.code, details: error.details, hint: error.hint } : { ok: true, count };
+  }
+  res.json({ ok: Object.values(checks).every((c) => c.ok), checks });
+});
 app.use('/api', publicRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/orders', ordersRouter);
