@@ -41,7 +41,7 @@ app.get('/api/health', (_req, res) => {
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   res.json({
     ok: true,
-    db: 'supabase',
+    db: process.env.DATABASE_URL ? 'postgres' : 'supabase',
     supabaseUrl: process.env.SUPABASE_URL || null,
     hasKey: !!key,
     keyType: key.startsWith('sb_secret_') ? 'secret' : key.startsWith('sb_publishable_') ? 'publishable' : key ? 'other' : 'missing',

@@ -17,6 +17,7 @@ Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express bac
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_SECRET_KEY=your-supabase-secret-key
    SUPABASE_STORAGE_BUCKET=media
+   DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
 
    VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -45,7 +46,7 @@ npm run preview
 ## Backend
 
 - Entry: `server/index.js`
-- Database: Supabase Postgres (users, orders, products, branches, blogs, team, audit logs)
+- Database: Direct Postgres via `DATABASE_URL` (Supabase Postgres; bypasses PostgREST schema cache) for users, orders, products, branches, blogs, team, audit logs
 - Media: Supabase Storage bucket (`SUPABASE_STORAGE_BUCKET`, default `media`) via `POST /api/uploads`
 - Seeds default products/branches/blogs/team from `server/defaults.json` on first run
 - Seeds default admin user (`ADMIN_EMAIL` / `ADMIN_DEFAULT_PASSWORD`, default `admin123`)
@@ -90,6 +91,7 @@ npm start
 - `JWT_SECRET` (required, strong random value)
 - `ADMIN_EMAIL` / `ADMIN_DEFAULT_PASSWORD`
 - `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_STORAGE_BUCKET`
+- `DATABASE_URL` (direct Postgres connection string)
 - `VITE_GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_ID`
 - `CORS_ORIGIN` (optional for same-origin; set for custom/cross domains)
 - `VITE_API_URL` (only if frontend and backend are on different domains)
