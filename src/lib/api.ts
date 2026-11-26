@@ -10,6 +10,7 @@ export type ApiUser = {
 
 const TOKEN_KEY = 'kaffiika_auth_token';
 const ADMIN_TOKEN_KEY = 'kaffiika_admin_token';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
 export function setToken(t: string) { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }
@@ -20,12 +21,19 @@ async function request(path: string, opts: RequestInit = {}, admin = false) {
   const token = admin ? getAdminToken() : getToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(opts.headers as any || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(path, { ...opts, headers });
+  const url = `${API_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url, { ...opts, headers });
+  } catch {
+    throw new Error('Cannot reach backend API. Start the server locally or set VITE_API_URL to your deployed backend.');
+  }
   const text = await res.text();
   let data: any = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
   if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
+    const msg = (data && typeof data === 'object' && (data.error || data.message))
+      || (res.status === 404 || res.status === 405 ? 'Backend API not available on this deployment. Deploy the backend and set VITE_API_URL, or run the API server locally.' : `Request failed (${res.status})`);
     throw new Error(msg);
   }
   return data;
