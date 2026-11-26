@@ -7,9 +7,55 @@ if (!url || !key) {
   console.warn('Missing SUPABASE_URL or SUPABASE_SECRET_KEY/SUPABASE_SERVICE_ROLE_KEY');
 }
 
-export const supabase = createClient(url || '', key || '', {
+const rawSupabase = createClient(url || '', key || '', {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+
+function isSchemaCacheError(err) {
+  const msg = String(err?.message || err || '');
+  return msg.toLowerCase().includes('schema cache') || err?.code === 'PGRST205';
+}
+
+function wrapBuilder(builder) {
+  if (!builder || typeof builder.then !== 'function') return builder;
+  const origThen = builder.then.bind(builder);
+  builder.then = (onfulfilled, onrejected) => {
+    let attempts = 0;
+    const run = () => origThen(
+      (result) => {
+        if (result?.error && isSchemaCacheError(result.error) && attempts < 2) {
+          attempts++;
+          return new Promise((r) => setTimeout(r, 700 * attempts)).then(run);
+        }
+        return onfulfilled ? onfulfilled(result) : result;
+      },
+      (err) => {
+        if (isSchemaCacheError(err) && attempts < 2) {
+          attempts++;
+          return new Promise((r) => setTimeout(r, 700 * attempts)).then(run);
+        }
+        if (onrejected) return onrejected(err);
+        throw err;
+      }
+    );
+    return run();
+  };
+  return builder;
+}
+
+function wrapClient(client) {
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop === 'from') {
+        return (table) => wrapBuilder(target.from(table));
+      }
+      const val = Reflect.get(target, prop, receiver);
+      return typeof val === 'function' ? val.bind(target) : val;
+    },
+  });
+}
+
+export const supabase = wrapClient(rawSupabase);
 
 function nowIso() { return new Date().toISOString(); }
 
