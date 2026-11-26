@@ -33,6 +33,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { QuoteDrawer, QuoteItem } from './components/QuoteDrawer';
 import { AuthModal, AuthUser } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
+import { api, getToken, setToken } from './lib/api';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ProductsPage } from './pages/ProductsPage';
@@ -106,91 +107,26 @@ export function App() {
   const [initialProductCategory, setInitialProductCategory] =
     useState<FeedCategory>('All');
 
-  // Master Store & ERP State with localStorage persistence
-  const [products, setProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaffiika_products_v2');
-      return saved ? JSON.parse(saved) : PRODUCTS;
-    } catch {
-      return PRODUCTS;
-    }
-  });
-
-  const [branches, setBranches] = useState<Branch[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaffiika_branches_v4');
-      return saved ? JSON.parse(saved) : BRANCHES;
-    } catch {
-      return BRANCHES;
-    }
-  });
-
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaffiika_blogs_v2');
-      return saved ? JSON.parse(saved) : BLOG_POSTS;
-    } catch {
-      return BLOG_POSTS;
-    }
-  });
-
-  const [team, setTeam] = useState<TeamMember[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaffiika_team_v1');
-      return saved ? JSON.parse(saved) : TEAM_MEMBERS;
-    } catch {
-      return TEAM_MEMBERS;
-    }
-  });
-
-  const [orders, setOrders] = useState<CustomerOrder[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaffiika_orders_v2');
-      return saved ? JSON.parse(saved) : INITIAL_ORDERS;
-    } catch {
-      return INITIAL_ORDERS;
-    }
-  });
+  // Master Store & ERP State - backend is source of truth, static defaults as fallback
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [branches, setBranches] = useState<Branch[]>(BRANCHES);
+  const [blogs, setBlogs] = useState<BlogPost[]>(BLOG_POSTS);
+  const [team, setTeam] = useState<TeamMember[]>(TEAM_MEMBERS);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('kaffiika_products_v2', JSON.stringify(products));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [products]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('kaffiika_branches_v4', JSON.stringify(branches));
-    } catch {
-      // ignore
-    }
-  }, [branches]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('kaffiika_blogs_v2', JSON.stringify(blogs));
-    } catch {
-      // ignore
-    }
-  }, [blogs]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('kaffiika_team_v1', JSON.stringify(team));
-    } catch {
-      // ignore
-    }
-  }, [team]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('kaffiika_orders_v2', JSON.stringify(orders));
-    } catch {
-      // ignore
-    }
-  }, [orders]);
+    (async () => {
+      try {
+        const data = await api.bootstrap();
+        if (Array.isArray(data.products) && data.products.length) setProducts(data.products);
+        if (Array.isArray(data.branches) && data.branches.length) setBranches(data.branches);
+        if (Array.isArray(data.blogs)) setBlogs(data.blogs);
+        if (Array.isArray(data.team)) setTeam(data.team);
+      } catch (e) {
+        console.warn('Bootstrap API unavailable, using static defaults', e);
+      }
+    })();
+  }, []);
 
   // Listen to browser back/forward navigation and legacy hash links
   useEffect(() => {
@@ -225,14 +161,7 @@ export function App() {
   };
 
   // Auth, Modal & Quote Drawer State
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
-    try {
-      const raw = localStorage.getItem('kaffiika_current_user');
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(
@@ -246,11 +175,17 @@ export function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      if (currentUser) localStorage.setItem('kaffiika_current_user', JSON.stringify(currentUser));
-      else localStorage.removeItem('kaffiika_current_user');
-    } catch {}
-  }, [currentUser]);
+    const token = getToken();
+    if (!token) return;
+    (async () => {
+      try {
+        const r = await api.me();
+        if (r?.user) setCurrentUser(r.user);
+      } catch {
+        setToken('');
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -287,6 +222,7 @@ export function App() {
   };
 
   const handleLogout = () => {
+    setToken('');
     setCurrentUser(null);
     setQuoteItems([]);
     setIsQuoteDrawerOpen(false);
@@ -296,9 +232,6 @@ export function App() {
 
   const handleUpdateProfile = (user: AuthUser) => {
     setCurrentUser(user);
-    try {
-      localStorage.setItem('kaffiika_current_user', JSON.stringify(user));
-    } catch {}
     triggerToast('Profile updated.');
   };
 
@@ -374,66 +307,72 @@ export function App() {
 
   // Admin CRUD Handlers
   const handleUpdateProduct = (updated: Product) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === updated.id ? updated : p))
-    );
+    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    void api.adminUpsert('products', updated).catch(console.error);
   };
-
   const handleAddProduct = (newProd: Product) => {
     setProducts((prev) => [newProd, ...prev]);
+    void api.adminUpsert('products', newProd).catch(console.error);
   };
-
   const handleDeleteProduct = (id: number) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    void api.adminDelete('products', String(id)).catch(console.error);
   };
 
-  const handleCreateOrder = (newOrder: CustomerOrder) => {
-    setOrders((prev) => [newOrder, ...prev]);
+  const handleCreateOrder = async (newOrder: CustomerOrder) => {
+    try {
+      const saved = await api.createOrder(newOrder);
+      setOrders((prev) => [saved, ...prev.filter((o) => o.id !== saved.id)]);
+    } catch (e) {
+      console.error(e);
+      setOrders((prev) => [newOrder, ...prev]);
+      triggerToast('Order saved locally; backend sync failed.');
+    }
   };
 
-  const handleUpdateOrderStatus = (
-    orderId: string,
-    status: CustomerOrder['status']
-  ) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
-    );
+  const handleUpdateOrderStatus = (orderId: string, status: CustomerOrder['status']) => {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
+    void api.adminUpdateOrderStatus(orderId, status).catch(console.error);
   };
 
   const handleDeleteOrder = (orderId: string) => {
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    void api.adminDeleteOrder(orderId).catch(console.error);
   };
 
   const handleUpdateBranch = (updated: Branch) => {
-    setBranches((prev) =>
-      prev.map((b) => (b.id === updated.id ? updated : b))
-    );
+    setBranches((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    void api.adminUpsert('branches', updated).catch(console.error);
   };
-
   const handleAddBranch = (newBranch: Branch) => {
     setBranches((prev) => [newBranch, ...prev]);
+    void api.adminUpsert('branches', newBranch).catch(console.error);
   };
-
   const handleDeleteBranch = (branchId: string) => {
     setBranches((prev) => prev.filter((b) => b.id !== branchId));
+    void api.adminDelete('branches', branchId).catch(console.error);
   };
 
   const handleAddBlog = (newBlog: BlogPost) => {
     setBlogs((prev) => [newBlog, ...prev]);
+    void api.adminUpsert('blogs', newBlog).catch(console.error);
   };
-
   const handleDeleteBlog = (blogId: string) => {
     setBlogs((prev) => prev.filter((b) => b.id !== blogId));
+    void api.adminDelete('blogs', blogId).catch(console.error);
   };
 
   const handleUpdateTeamMember = (updated: TeamMember) => {
     setTeam((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+    void api.adminUpsert('team', updated).catch(console.error);
   };
   const handleAddTeamMember = (member: TeamMember) => {
     setTeam((prev) => [member, ...prev]);
+    void api.adminUpsert('team', member).catch(console.error);
   };
   const handleDeleteTeamMember = (id: string) => {
     setTeam((prev) => prev.filter((m) => m.id !== id));
+    void api.adminDelete('team', id).catch(console.error);
   };
 
   const handleResetAllData = () => {

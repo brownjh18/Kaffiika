@@ -38,6 +38,7 @@ import {
   COMPANY_INFO,
   KAFFIIKA_ASSETS,
 } from '../data/kaffiikaData';
+import { api, setAdminToken, getAdminToken } from '../lib/api';
 
 interface AdminPageProps {
   products: Product[];
@@ -87,36 +88,41 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onResetAllData,
   onNavigate,
 }) => {
-  const ADMIN_PW_KEY = 'kaffiika_admin_password';
-  const [adminPassword, setAdminPassword] = useState<string>(() => {
-    try { return localStorage.getItem(ADMIN_PW_KEY) || 'admin123'; } catch { return 'admin123'; }
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getAdminToken());
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [currentAdminPassword, setCurrentAdminPassword] = useState('');
+  const [logs, setLogs] = useState<any[]>([]);
 
   const [activeModule, setActiveModule] = useState<
-    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'settings'
+    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'logs' | 'settings'
   >('dashboard');
 
-  const [users, setUsers] = useState<any[]>(() => {
+  const [users, setUsers] = useState<any[]>([]);
+  const [adminOrders, setAdminOrders] = useState<CustomerOrder[]>(orders);
+
+  useEffect(() => { setAdminOrders(orders); }, [orders]);
+
+  const refreshAdminData = async () => {
     try {
-      const raw = localStorage.getItem('kaffiika_users_v1');
-      return raw ? JSON.parse(raw) : [];
+      const [u, o, l] = await Promise.all([api.adminUsers().catch(() => []), api.adminOrders().catch(() => []), api.adminLogs().catch(() => [])]);
+      if (Array.isArray(u)) setUsers(u);
+      if (Array.isArray(l)) setLogs(l);
+      if (Array.isArray(o)) setAdminOrders(o);
+      return { users: u, orders: o, logs: l };
     } catch {
-      return [];
+      return null;
     }
-  });
+  };
 
   useEffect(() => {
-    if (activeModule === 'users') {
-      try {
-        const raw = localStorage.getItem('kaffiika_users_v1');
-        setUsers(raw ? JSON.parse(raw) : []);
-      } catch {
-        setUsers([]);
-      }
+    if (isAuthenticated) { refreshAdminData(); }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (activeModule === 'users' || activeModule === 'logs' || activeModule === 'orders') {
+      refreshAdminData();
     }
   }, [activeModule]);
 
@@ -196,8 +202,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     });
 
   // KPIs
-  const totalRevenueUgx = orders.reduce((s, o) => s + o.totalAmountUgx, 0);
-  const pendingOrdersCount = orders.filter((o) => o.status === 'Pending').length;
+  const totalRevenueUgx = adminOrders.reduce((s, o) => s + o.totalAmountUgx, 0);
+  const pendingOrdersCount = adminOrders.filter((o) => o.status === 'Pending').length;
   const totalInventoryBags = products.reduce(
     (s, p) => s + (p.stockBags ?? 200),
     0
@@ -328,14 +334,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              if (loginPassword === adminPassword) {
+              setLoginError(null);
+              try {
+                const r = await api.adminLogin({ password: loginPassword });
+                setAdminToken(r.token);
                 setIsAuthenticated(true);
-                setLoginError(null);
                 setLoginPassword('');
-              } else {
-                setLoginError('Incorrect password.');
+                notify('Admin signed in.');
+              } catch (err: any) {
+                setLoginError(err.message || 'Incorrect password.');
               }
             }}
             className="space-y-4"
@@ -410,24 +419,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             <button
               type="button"
-              onClick={() => {
-                onResetAllData();
-                notify('Restored all products, prices, and branches to official defaults!');
-              }}
+              onClick={() => setActiveModule('logs')}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 text-xs font-bold cursor-pointer"
-              title="Reset Store Data to Defaults"
+              title="View system activity logs"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Defaults</span>
+              <FileText className="w-3.5 h-3.5" />
+              <span>Logs</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setIsAuthenticated(false)}
+              onClick={() => { setAdminToken(''); setIsAuthenticated(false); }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 text-xs font-bold cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Lock</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
@@ -457,7 +463,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             },
             {
               id: 'orders',
-              label: `Customer Orders (${orders.length})`,
+              label: `Customer Orders (${adminOrders.length})`,
               icon: ShoppingBag,
               badge: pendingOrdersCount > 0 ? `${pendingOrdersCount} New` : undefined,
             },
@@ -480,6 +486,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               id: 'users',
               label: `Users (${users.length})`,
               icon: Users,
+            },
+            {
+              id: 'logs',
+              label: `Logs (${logs.length})`,
+              icon: FileText,
             },
             {
               id: 'settings',
@@ -528,7 +539,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   UGX {totalRevenueUgx.toLocaleString()}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  Across {orders.length} active proforma & branch orders
+                  Across {adminOrders.length} active proforma & branch orders
                 </div>
               </div>
 
@@ -651,7 +662,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
 
                 <div className="space-y-3">
-                  {orders.slice(0, 5).map((ord) => (
+                  {adminOrders.slice(0, 5).map((ord) => (
                     <div
                       key={ord.id}
                       className="p-4 rounded-xl bg-[#F4F7FB] border border-sky-200 flex flex-wrap items-center justify-between gap-3"
@@ -676,12 +687,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         </div>
                         <select
                           value={ord.status}
-                          onChange={(e) => {
-                            onUpdateOrderStatus(
-                              ord.id,
-                              e.target.value as CustomerOrder['status']
-                            );
-                            notify(`Updated order ${ord.reference} to ${e.target.value}`);
+                          onChange={async (e) => {
+                            const status = e.target.value as CustomerOrder['status'];
+                            try { await api.adminUpdateOrderStatus(ord.id, status); } catch {}
+                            onUpdateOrderStatus(ord.id, status);
+                            setAdminOrders((prev) => prev.map((o) => o.id === ord.id ? { ...o, status } : o));
+                            notify(`Updated order ${ord.reference} to ${status}`);
                           }}
                           className="mt-1 px-2 py-0.5 rounded bg-white border border-sky-300 text-[11px] font-bold text-[#0A1E3C]"
                         >
@@ -1142,7 +1153,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             <div className="bg-white p-5 rounded-2xl border border-sky-200 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-[#0A1E3C]">
-                  Customer Feed Orders & Proforma Quotes ({orders.length})
+                  Customer Feed Orders & Proforma Quotes ({adminOrders.length})
                 </h3>
                 <p className="text-xs text-slate-500">
                   Any quote submitted by a farmer in the storefront Quote Drawer appears
@@ -1152,7 +1163,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="space-y-4">
-              {orders.map((order) => (
+              {adminOrders.map((order) => (
                 <div
                   key={order.id}
                   className="bg-white rounded-2xl p-6 border border-sky-200 shadow-2xs"
@@ -1186,11 +1197,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <div className="flex items-center gap-3">
                       <select
                         value={order.status}
-                        onChange={(e) => {
-                          onUpdateOrderStatus(
-                            order.id,
-                            e.target.value as CustomerOrder['status']
-                          );
+                        onChange={async (e) => {
+                          const status = e.target.value as CustomerOrder['status'];
+                          try { await api.adminUpdateOrderStatus(order.id, status); } catch {}
+                          onUpdateOrderStatus(order.id, status);
+                          setAdminOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status } : o));
                           notify(`Order ${order.reference} status updated!`);
                         }}
                         className="px-3 py-2 rounded-xl bg-[#F4F7FB] border border-sky-300 text-xs font-bold text-[#065AA7]"
@@ -1203,8 +1214,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
+                          try { await api.adminDeleteOrder(order.id); } catch {}
                           onDeleteOrder(order.id);
+                          setAdminOrders((prev) => prev.filter((o) => o.id !== order.id));
                           notify(`Removed order ${order.reference}`);
                         }}
                         className="p-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer"
@@ -1679,7 +1692,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             ) : (
               <div className="space-y-4">
                 {users.map((u: any) => {
-                  const userOrders = orders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
+                  const userOrders = adminOrders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
                   return (
                     <div key={u.id || u.email} className="bg-white rounded-2xl border border-sky-200 p-5 shadow-2xs">
                       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1749,6 +1762,47 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
         )}
 
+        {activeModule === 'logs' && (
+          <div className="space-y-4">
+            <div className="bg-white p-5 rounded-2xl border border-sky-200 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-bold text-[#0A1E3C]">System Activity Logs ({logs.length})</h3>
+                <p className="text-xs text-slate-500">Tracks sign-ins, orders, admin actions, and profile changes.</p>
+              </div>
+              <button type="button" onClick={refreshAdminData} className="px-4 py-2 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs font-bold cursor-pointer">Refresh</button>
+            </div>
+            <div className="bg-white rounded-2xl border border-sky-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-[#F4F7FB] text-slate-600 text-xs uppercase">
+                    <tr>
+                      <th className="text-left px-4 py-3">Time</th>
+                      <th className="text-left px-4 py-3">Actor</th>
+                      <th className="text-left px-4 py-3">Action</th>
+                      <th className="text-left px-4 py-3">Entity</th>
+                      <th className="text-left px-4 py-3">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((l: any) => (
+                      <tr key={l.id} className="border-t border-sky-100 align-top">
+                        <td className="px-4 py-3 font-mono-tech text-xs text-slate-500 whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-xs"><div className="font-semibold text-[#0A1E3C]">{l.actor_email || 'system'}</div><div className="text-slate-400">{l.actor_role || '-'}</div></td>
+                        <td className="px-4 py-3 text-xs font-semibold text-[#065AA7]">{l.action}</td>
+                        <td className="px-4 py-3 text-xs text-slate-600">{l.entity_type || '-'}{l.entity_id ? ` #${l.entity_id}` : ''}</td>
+                        <td className="px-4 py-3 text-[11px] text-slate-500 font-mono-tech max-w-[320px] break-words">{l.details ? JSON.stringify(l.details) : '-'}</td>
+                      </tr>
+                    ))}
+                    {logs.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-sm">No logs yet.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeModule === 'settings' && (
           <div className="max-w-xl bg-white rounded-2xl border border-sky-200 shadow-sm p-6 space-y-5">
             <div>
@@ -1756,26 +1810,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <p className="text-sm text-slate-500">Change the admin password used to access this dashboard.</p>
             </div>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                if (!newAdminPassword.trim()) return;
-                localStorage.setItem(ADMIN_PW_KEY, newAdminPassword.trim());
-                setAdminPassword(newAdminPassword.trim());
-                setNewAdminPassword('');
-                notify('Admin password updated.');
+                try {
+                  await api.adminChangePassword({ currentPassword: currentAdminPassword, newPassword: newAdminPassword });
+                  setCurrentAdminPassword('');
+                  setNewAdminPassword('');
+                  notify('Admin password updated.');
+                } catch (err: any) {
+                  notify(err.message || 'Failed to update password');
+                }
               }}
               className="space-y-3"
             >
               <label className="block">
+                <span className="text-xs font-bold text-slate-600">Current Password</span>
+                <input type="password" value={currentAdminPassword} onChange={(e) => setCurrentAdminPassword(e.target.value)} className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" required />
+              </label>
+              <label className="block">
                 <span className="text-xs font-bold text-slate-600">New Password</span>
-                <input
-                  type="password"
-                  value={newAdminPassword}
-                  onChange={(e) => setNewAdminPassword(e.target.value)}
-                  className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                  placeholder="Enter new admin password"
-                  required
-                />
+                <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="At least 6 characters" required />
               </label>
               <button type="submit" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">
                 <Save className="w-4 h-4" /> Save Password

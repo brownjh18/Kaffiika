@@ -1,65 +1,70 @@
 ﻿# Kaffiika Animal Feeds Website
 
-Vite + React + TypeScript + Tailwind static website.
+Full-stack Vite + React + TypeScript + Tailwind frontend with a Node/Express + SQLite backend.
 
 ## Local development
 
-```bash
-npm ci
-npm run dev -- --host 127.0.0.1 --port 5173
-```
+1. Install dependencies:
+   ```bash
+   npm ci
+   ```
+2. Create `.env` from `.env.example` and set at least:
+   ```env
+   JWT_SECRET=replace-with-a-long-random-secret
+   ADMIN_EMAIL=admin@kaffiikafeeds.com
+   ADMIN_DEFAULT_PASSWORD=admin123
+   VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+   ```
+3. Start the backend API:
+   ```bash
+   npm run dev:server
+   ```
+4. Start the frontend (in another terminal):
+   ```bash
+   npm run dev -- --host 127.0.0.1 --port 5173
+   ```
 
-## Production build
+Frontend: http://127.0.0.1:5173  
+API: http://127.0.0.1:3001 (Vite proxies `/api` in dev)
+
+## Production build (frontend)
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Environment variables
+## Backend
 
-Copy `.env.example` to `.env` for local development. For Vercel, add the same variables in **Project Settings > Environment Variables** and redeploy.
+- Entry: `server/index.js`
+- DB: SQLite (`DB_PATH`, default `server/data/app.sqlite`)
+- Seeds default products/branches/blogs/team from `server/defaults.json` on first run
+- Seeds default admin user (`ADMIN_EMAIL` / `ADMIN_DEFAULT_PASSWORD`, default `admin123`)
 
-| Variable | Purpose |
-| --- | --- |
-| `VITE_GOOGLE_CLIENT_ID` | Enables Google sign-in in the auth modal via Google Identity Services. |
-| `VITE_ADMIN_EMAIL` | Optional client-side admin default (not secure backend auth). |
-| `VITE_ADMIN_PASSWORD` | Optional client-side admin default (not secure backend auth). |
+### Main API areas
+- `POST /api/auth/register`, `/login`, `/verify`, `/resend-code`, `/google`
+- `GET /api/auth/me`, `PUT /api/auth/profile`
+- `POST /api/orders`, `GET /api/orders/mine`
+- `POST /api/admin/login`
+- `GET /api/admin/users`, `/orders`, `/logs`
+- Admin CRUD: `/api/admin/products|branches|blogs|team`
+- `PUT /api/admin/orders/:id/status`, `DELETE /api/admin/orders/:id`
+- `POST /api/admin/change-password`
 
 ## Google sign-in setup
 
-Google sign-in is shown in the Sign In / Create Account modal only when `VITE_GOOGLE_CLIENT_ID` is configured.
+Set `VITE_GOOGLE_CLIENT_ID` (frontend) and `GOOGLE_CLIENT_ID` (backend verification) to the same Google OAuth Web client ID. Add authorized JavaScript origins in Google Cloud Console for your local/dev and production domains.
 
-1. Open [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
-2. Create or select a project.
-3. Configure the OAuth consent screen if prompted.
-4. Create **OAuth client ID** > **Web application**.
-5. Add **Authorized JavaScript origins** for every environment where the app runs:
-   - `http://127.0.0.1:5173`
-   - `http://localhost:5173`
-   - `https://your-production-domain`
-   - `https://your-project.vercel.app` (if used)
-6. Copy the generated Client ID.
-7. Set `VITE_GOOGLE_CLIENT_ID=<your-client-id>` in `.env` locally, or in Vercel Environment Variables.
-8. Redeploy/restart the app. Vite env vars are baked in at build time.
+## Admin
 
-Notes:
-- No client secret is needed for Google Identity Services browser sign-in.
-- If the button does not appear, check the browser console, ad/script blockers, and that the current site origin is listed in Google Cloud authorized JavaScript origins.
-- User accounts are stored client-side in browser localStorage; this is not a secure production authentication backend.
+- Admin dashboard is at `/admin`.
+- Admin signs in with backend admin credentials.
+- Admin can manage products, branches, blogs, team, users, orders, and view system activity logs.
+- Reset-defaults/lock controls were replaced by audit logs and admin sign-out.
 
-## Deploy on Vercel
+## Deployment notes
 
-- Framework preset: **Vite**
-- Build command: `npm run build`
-- Output directory: `dist`
-- `vercel.json` is included with SPA rewrites and basic security headers.
-- Add `VITE_GOOGLE_CLIENT_ID` in Vercel environment variables to enable Google sign-in.
-
-## Production notes
-
-- Company contact/details are centralized in `src/data/kaffiikaData.ts` (`COMPANY_INFO`).
-- Branch model is currently configured as **Head Office only** in `src/data/kaffiikaData.ts` (`BRANCHES`).
-- Contact form currently uses `mailto:` for static deployment. For production lead capture, connect a form service (Vercel Forms/Formspree/API endpoint) or CRM.
-- Admin portal is a client-side management UI using browser local storage; it is not a secure backend CMS. For production, replace with authenticated backend/admin.
-- Product/catalog/blog/testimonial data is static in `src/data/kaffiikaData.ts`; connect a CMS/database for live operations.
+- The frontend is Vite static and includes `vercel.json` rewrites for SPA routes.
+- The backend is a Node/Express server; deploy it to a Node-capable host (Render/Railway/Fly/VM/VPS/etc.) or adapt to serverless + managed DB.
+- For production, use a strong `JWT_SECRET`, HTTPS, a managed persistent database, and a real email provider for verification codes.

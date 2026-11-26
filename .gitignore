@@ -23,3 +23,9 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Server data
+server/data/
+server/*.sqlite
+server/*.sqlite-shm
+server/*.sqlite-wal
