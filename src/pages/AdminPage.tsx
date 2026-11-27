@@ -133,6 +133,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState<FeedCategory>('All');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingTeam, setEditingTeam] = useState<TeamMember | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [newProductForm, setNewProductForm] = useState<{
     name: string;
@@ -1522,6 +1523,42 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         )}
 
         {activeModule === 'team' && (
+          <div className="space-y-6">
+            {editingTeam && (
+              <div className="bg-white rounded-2xl p-6 border-2 border-[#F59E0B] shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-[#0A1E3C]">Edit Team Member: {editingTeam.name}</h3>
+                  <button type="button" onClick={() => setEditingTeam(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Full Name</label><input value={editingTeam.name} onChange={(e)=>setEditingTeam({...editingTeam, name:e.target.value})} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Role / Title</label><input value={editingTeam.role} onChange={(e)=>setEditingTeam({...editingTeam, role:e.target.value})} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Email</label><input value={editingTeam.email} onChange={(e)=>setEditingTeam({...editingTeam, email:e.target.value})} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Phone</label><input value={editingTeam.phones?.[0] || ''} onChange={(e)=>setEditingTeam({...editingTeam, phones:[e.target.value].filter(Boolean)})} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Department</label>
+                    <select value={editingTeam.department} onChange={(e)=>setEditingTeam({...editingTeam, department:e.target.value as TeamMember['department']})} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
+                      <option>Executive Leadership</option><option>Commercial & Operations</option><option>Regional Sales Management</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2"><label className="block text-xs font-bold text-slate-600 mb-1">Bio</label><textarea value={editingTeam.bio} onChange={(e)=>setEditingTeam({...editingTeam, bio:e.target.value})} rows={3} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+                        <Upload className="w-4 h-4" /> Upload Photo
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e)=>{const f=e.target.files?.[0]; if(f){ try{ setEditingTeam({...editingTeam, photoUrl: await uploadFile(f,'team')}); } catch(err:any){ notify(err.message||'Upload failed'); } } e.target.value=''; }} />
+                      </label>
+                      {editingTeam.photoUrl && <button type="button" onClick={()=>setEditingTeam({...editingTeam, photoUrl:''})} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove</button>}
+                    </div>
+                    {editingTeam.photoUrl ? <img src={editingTeam.photoUrl} alt="" className="mt-3 w-20 h-20 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-20 h-20 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[10px] text-slate-400">No photo</div>}
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" onClick={() => setEditingTeam(null)} className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">Cancel</button>
+                  <button type="button" onClick={() => { if (!editingTeam.name.trim()) return; onUpdateTeamMember({ ...editingTeam, phones: (editingTeam.phones || []).filter(Boolean) }); notify(`Saved ${editingTeam.name}`); setEditingTeam(null); }} className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Save Changes</button>
+                </div>
+              </div>
+            )}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-4 bg-white rounded-2xl p-6 border border-sky-200 shadow-sm">
               <h3 className="text-lg font-bold text-[#0A1E3C] mb-4">Add Team Member / Manager</h3>
@@ -1569,10 +1606,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       <div className="text-xs text-slate-500 mt-1">{m.email} {m.phones?.[0] ? `• ${m.phones[0]}` : ''}</div>
                     </div>
                   </div>
-                  <button type="button" onClick={() => { onDeleteTeamMember(m.id); notify(`Deleted ${m.name}`); }} className="p-2 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button type="button" onClick={() => setEditingTeam({ ...m, phones: [...(m.phones || [])] })} className="p-2 rounded-lg bg-sky-50 hover:bg-[#065AA7] hover:text-white text-[#065AA7] cursor-pointer" title="Edit"><Edit3 className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => { onDeleteTeamMember(m.id); notify(`Deleted ${m.name}`); }} className="p-2 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
           </div>
         )}
 
@@ -1776,7 +1817,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-sky-200 px-2 py-1.5">
         <div className="grid grid-cols-5 gap-1">
-          {navGroups.slice(0, 4).map((group) => {
+          {navGroups.slice(0, 3).map((group) => {
             const GroupIcon = group.icon;
             const active = activeGroup === group.id;
             const target = group.items[0].id;
@@ -1787,6 +1828,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </button>
             );
           })}
+          <button type="button" onClick={() => goTo('blogs')} className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-[10px] font-bold cursor-pointer ${activeModule === 'blogs' ? 'text-[#065AA7] bg-[#E6EFF8]' : 'text-slate-500'}`}>
+            <FileText className="w-5 h-5" />
+            <span>Blogs</span>
+          </button>
           <button type="button" onClick={() => setMobileNavOpen(true)} className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-[10px] font-bold cursor-pointer ${mobileNavOpen || activeGroup === 'system' ? 'text-[#065AA7] bg-[#E6EFF8]' : 'text-slate-500'}`}>
             <Menu className="w-5 h-5" />
             <span>Menu</span>
