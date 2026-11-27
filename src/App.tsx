@@ -252,6 +252,7 @@ export function App() {
     setQuoteItems([]);
     setIsQuoteDrawerOpen(false);
     setIsProfileModalOpen(false);
+    handleNavigate('/');
     triggerToast('You have been signed out.');
   };
 
@@ -739,6 +740,7 @@ export function App() {
             onDeleteTeamMember={handleDeleteTeamMember}
             onResetAllData={handleResetAllData}
             onNavigate={handleNavigate}
+            onLogout={handleLogout}
           />
         )}
 
