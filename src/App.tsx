@@ -543,7 +543,7 @@ export function App() {
               <button
                 type="button"
                 onClick={() => setIsProfileModalOpen(true)}
-                className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#0A1E3C] text-xs font-bold cursor-pointer max-w-[220px]"
+                className="inline-flex items-center gap-2 px-1.5 sm:px-2.5 py-1.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#0A1E3C] text-xs font-bold cursor-pointer max-w-[220px]"
                 title="My Profile"
               >
                 {currentUser.photoUrl ? (
@@ -553,12 +553,12 @@ export function App() {
                     <User className="w-4 h-4" />
                   </span>
                 )}
-                <span className="truncate pr-1">{currentUser.name}</span>
+                <span className="hidden sm:inline truncate pr-1">{currentUser.name}</span>
               </button>
             ) : (
-              <button type="button" onClick={() => setIsAuthModalOpen(true)} className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs sm:text-sm font-bold cursor-pointer">
+              <button type="button" onClick={() => setIsAuthModalOpen(true)} className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs sm:text-sm font-bold cursor-pointer">
                 <LogIn className="w-4 h-4" />
-                <span>Sign In</span>
+                <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
 
