@@ -813,18 +813,6 @@ export function App() {
                   {p.label}
                 </a>
               ))}
-              <a
-                href="/admin"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigate('/admin');
-                }}
-                className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-[#F59E0B] border border-white/15 transition-colors mt-2"
-                aria-label="Admin"
-                title="Admin"
-              >
-                <Shield className="w-4 h-4" />
-              </a>
               <div className="pt-2 space-y-1.5 border-t border-white/10 mt-2">
                 <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); handleNavigate('/privacy-policy'); }} className="block text-sky-200 hover:text-white transition-colors">Privacy Policy</a>
                 <a href="/terms" onClick={(e) => { e.preventDefault(); handleNavigate('/terms'); }} className="block text-sky-200 hover:text-white transition-colors">Terms & Conditions</a>
