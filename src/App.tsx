@@ -378,6 +378,10 @@ export function App() {
     setBlogs((prev) => [newBlog, ...prev]);
     void api.adminUpsert('blogs', newBlog).catch(console.error);
   };
+  const handleUpdateBlog = (updated: BlogPost) => {
+    setBlogs((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    void api.adminUpsert('blogs', updated).catch(console.error);
+  };
   const handleDeleteBlog = (blogId: string) => {
     setBlogs((prev) => prev.filter((b) => b.id !== blogId));
     void api.adminDelete('blogs', blogId).catch(console.error);
@@ -727,6 +731,7 @@ export function App() {
             onAddBranch={handleAddBranch}
             onDeleteBranch={handleDeleteBranch}
             onAddBlog={handleAddBlog}
+            onUpdateBlog={handleUpdateBlog}
             onDeleteBlog={handleDeleteBlog}
             onUpdateTeamMember={handleUpdateTeamMember}
             onAddTeamMember={handleAddTeamMember}
