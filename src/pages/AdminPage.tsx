@@ -912,7 +912,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         tilapia.jpg (Fish / Aqua)
                       </option>
                     </select>
-                    <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewProductForm({ ...newProductForm, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mt-2" />
+                    <div className="flex items-center gap-2 mt-2"><input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewProductForm({ ...newProductForm, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs" /><button type="button" onClick={() => setNewProductForm({ ...newProductForm, imageUrl: '' })} className="px-2 py-1 rounded bg-red-50 text-red-600 text-[11px] font-bold cursor-pointer">Clear</button></div>
                     <p className="text-[11px] text-slate-500 mt-1">Upload an image or choose a preset above.</p>
                   </div>
 
@@ -957,89 +957,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             {editingProduct && (
               <div className="bg-white rounded-2xl p-6 border-2 border-[#F59E0B] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-[#0A1E3C]">
-                    Edit Product: {editingProduct.name} ({editingProduct.code})
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setEditingProduct(null)}
-                    className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <h3 className="text-lg font-bold text-[#0A1E3C]">Edit Product: {editingProduct.name}</h3>
+                  <button type="button" onClick={() => setEditingProduct(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">
-                      Product Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProduct.name}
-                      onChange={(e) =>
-                        setEditingProduct({
-                          ...editingProduct,
-                          name: e.target.value,
-                        })
-                      }
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">
-                      Product Code
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProduct.code}
-                      onChange={(e) =>
-                        setEditingProduct({
-                          ...editingProduct,
-                          code: e.target.value,
-                        })
-                      }
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">
-                      Unit Price (UGX)
-                    </label>
-                    <input
-                      type="number"
-                      value={editingProduct.priceUgx}
-                      onChange={(e) =>
-                        setEditingProduct({
-                          ...editingProduct,
-                          priceUgx: Number(e.target.value),
-                        })
-                      }
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech font-bold text-[#065AA7]"
-                    />
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Name</label><input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Code</label><input type="text" value={editingProduct.code} onChange={(e) => setEditingProduct({ ...editingProduct, code: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Unit Price (UGX)</label><input type="number" value={editingProduct.priceUgx} onChange={(e) => setEditingProduct({ ...editingProduct, priceUgx: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech font-bold text-[#065AA7]" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Units</label><input type="text" value={editingProduct.units} onChange={(e) => setEditingProduct({ ...editingProduct, units: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Stock (Bags)</label><input type="number" value={editingProduct.stockBags ?? 0} onChange={(e) => setEditingProduct({ ...editingProduct, stockBags: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div className="sm:col-span-3"><label className="block text-xs font-bold text-slate-600 mb-1">Summary</label><input type="text" value={editingProduct.summary} onChange={(e) => setEditingProduct({ ...editingProduct, summary: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Product Image (upload, URL, or clear)</label>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setEditingProduct({ ...editingProduct, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="text-xs" />
+                      <button type="button" onClick={() => setEditingProduct({ ...editingProduct, imageUrl: '' })} className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove Image</button>
+                    </div>
+                    <input type="text" value={editingProduct.imageUrl} onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })} className="mt-2 w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" />
+                    {editingProduct.imageUrl && <img src={editingProduct.imageUrl} alt="" className="mt-2 w-20 h-20 rounded-lg object-cover border border-sky-200" />}
                   </div>
                 </div>
-
                 <div className="mt-4 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingProduct(null)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onUpdateProduct(editingProduct);
-                      notify(`Saved changes to ${editingProduct.name}`);
-                      setEditingProduct(null);
-                    }}
-                    className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    Update Product
-                  </button>
+                  <button type="button" onClick={() => setEditingProduct(null)} className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">Cancel</button>
+                  <button type="button" onClick={() => { onUpdateProduct(editingProduct); notify(`Saved changes to ${editingProduct.name}`); setEditingProduct(null); }} className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Update Product</button>
                 </div>
               </div>
             )}
@@ -1528,12 +1468,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Cover Image (upload or URL)</label>
                   <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, imageUrl: await uploadFile(f, 'blogs') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mb-2" />
-                  <input type="text" value={newBlogForm.imageUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, imageUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" />
+                  <div className="flex gap-2"><input type="text" value={newBlogForm.imageUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, imageUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" /><button type="button" onClick={() => setNewBlogForm({ ...newBlogForm, imageUrl: '' })} className="px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Clear</button></div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Video (upload or URL, optional)</label>
                   <input type="file" accept="video/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, videoUrl: await uploadFile(f, 'blogs/videos') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mb-2" />
-                  <input type="text" value={newBlogForm.videoUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, videoUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Video URL (mp4/webm)" />
+                  <div className="flex gap-2"><input type="text" value={newBlogForm.videoUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, videoUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Video URL (mp4/webm)" /><button type="button" onClick={() => setNewBlogForm({ ...newBlogForm, videoUrl: '' })} className="px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Clear</button></div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">
@@ -1647,7 +1587,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Photo (upload or URL)</label>
                   <input type="file" accept="image/*" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } }}} className="w-full text-xs mb-2" />
-                  <input value={newTeamForm.photoUrl} onChange={(e)=>setNewTeamForm({...newTeamForm,photoUrl:e.target.value})} placeholder="Photo URL" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                  <div className="flex gap-2"><input value={newTeamForm.photoUrl} onChange={(e)=>setNewTeamForm({...newTeamForm,photoUrl:e.target.value})} placeholder="Photo URL" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /><button type="button" onClick={()=>setNewTeamForm({...newTeamForm,photoUrl:''})} className="px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Clear</button></div>
                 </div>
                 <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>
               </form>
