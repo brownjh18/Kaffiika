@@ -200,6 +200,22 @@ export function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const hash = window.location.hash || '';
+    if (hash.includes('google_auth_token=') || hash.includes('google_auth_error=')) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const gToken = params.get('google_auth_token');
+      const gErr = params.get('google_auth_error');
+      if (gToken) {
+        const remember = sessionStorage.getItem('kaffiika_google_remember') !== '0';
+        setToken(gToken, remember);
+        sessionStorage.removeItem('kaffiika_google_remember');
+      }
+      if (gErr) {
+        setToastMessage('Google sign-in failed. Please try again.');
+        setTimeout(() => setToastMessage(null), 2800);
+      }
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     const token = getToken();
     if (!token) return;
     (async () => {
