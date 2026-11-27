@@ -5,11 +5,10 @@ export type ApiUser = {
   provider: 'email' | 'google';
   photoUrl?: string;
   verified?: boolean;
-  role?: 'user' | 'admin';
+  role?: 'user' | 'admin' | 'superadmin';
 };
 
 const TOKEN_KEY = 'kaffiika_auth_token';
-const ADMIN_TOKEN_KEY = 'kaffiika_admin_token';
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export function getToken() { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || ''; }
@@ -18,15 +17,9 @@ export function setToken(t: string, remember = true) {
   sessionStorage.removeItem(TOKEN_KEY);
   if (t) (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, t);
 }
-export function getAdminToken() { return localStorage.getItem(ADMIN_TOKEN_KEY) || sessionStorage.getItem(ADMIN_TOKEN_KEY) || ''; }
-export function setAdminToken(t: string, remember = true) {
-  localStorage.removeItem(ADMIN_TOKEN_KEY);
-  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-  if (t) (remember ? localStorage : sessionStorage).setItem(ADMIN_TOKEN_KEY, t);
-}
 
-async function request(path: string, opts: RequestInit = {}, admin = false) {
-  const token = admin ? getAdminToken() : getToken();
+async function request(path: string, opts: RequestInit = {}) {
+  const token = getToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(opts.headers as any || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
   const url = `${API_BASE}${path}`;
@@ -59,16 +52,14 @@ export const api = {
   createOrder: (body: any) => request('/api/orders', { method: 'POST', body: JSON.stringify(body) }),
   myOrders: () => request('/api/orders/mine'),
 
-  adminLogin: (body: any) => request('/api/admin/login', { method: 'POST', body: JSON.stringify(body) }),
-  adminMe: () => request('/api/admin/me', {}, true),
-  adminUpdateUserRole: (id: string, role: 'user' | 'admin') => request(`/api/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }, true),
-  adminUsers: () => request('/api/admin/users', {}, true),
-  adminOrders: () => request('/api/admin/orders', {}, true),
-  adminLogs: () => request('/api/admin/logs', {}, true),
-  adminChangePassword: (body: any) => request('/api/admin/change-password', { method: 'POST', body: JSON.stringify(body) }, true),
-  adminUpdateOrderStatus: (id: string, status: string) => request(`/api/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }, true),
-  adminDeleteOrder: (id: string) => request(`/api/admin/orders/${id}`, { method: 'DELETE' }, true),
-  adminUpsert: (entity: 'products'|'branches'|'blogs'|'team', item: any) => request(`/api/admin/${entity}`, { method: 'POST', body: JSON.stringify(item) }, true),
-  adminDelete: (entity: 'products'|'branches'|'blogs'|'team'|'users', id: string) => request(`/api/admin/${entity}/${id}`, { method: 'DELETE' }, true),
-  upload: (dataUrl: string, folder = 'uploads', filename = 'file', admin = false) => request('/api/uploads', { method: 'POST', body: JSON.stringify({ dataUrl, folder, filename }) }, admin),
+  adminMe: () => request('/api/admin/me'),
+  adminUpdateUserRole: (id: string, role: 'user' | 'admin') => request(`/api/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+  adminUsers: () => request('/api/admin/users'),
+  adminOrders: () => request('/api/admin/orders'),
+  adminLogs: () => request('/api/admin/logs'),
+  adminUpdateOrderStatus: (id: string, status: string) => request(`/api/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  adminDeleteOrder: (id: string) => request(`/api/admin/orders/${id}`, { method: 'DELETE' }),
+  adminUpsert: (entity: 'products'|'branches'|'blogs'|'team', item: any) => request(`/api/admin/${entity}`, { method: 'POST', body: JSON.stringify(item) }),
+  adminDelete: (entity: 'products'|'branches'|'blogs'|'team'|'users', id: string) => request(`/api/admin/${entity}/${id}`, { method: 'DELETE' }),
+  upload: (dataUrl: string, folder = 'uploads', filename = 'file') => request('/api/uploads', { method: 'POST', body: JSON.stringify({ dataUrl, folder, filename }) }),
 };

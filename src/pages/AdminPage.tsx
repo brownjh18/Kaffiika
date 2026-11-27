@@ -40,9 +40,10 @@ import {
   COMPANY_INFO,
   KAFFIIKA_ASSETS,
 } from '../data/kaffiikaData';
-import { api, setAdminToken, getAdminToken } from '../lib/api';
+import { api, type ApiUser } from '../lib/api';
 
 interface AdminPageProps {
+  currentUser: ApiUser | null;
   products: Product[];
   branches: Branch[];
   blogs: BlogPost[];
@@ -102,6 +103,7 @@ const ImagePicker: React.FC<{ value: string; onChange: (url: string) => void; up
 };
 
 export const AdminPage: React.FC<AdminPageProps> = ({
+  currentUser,
   products,
   branches,
   blogs,
@@ -124,13 +126,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onResetAllData,
   onNavigate,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getAdminToken());
-  const [adminUser, setAdminUser] = useState<any>(null);
-  const [loginEmail, setLoginEmail] = useState('brownjh18@gmail.com');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [newAdminPassword, setNewAdminPassword] = useState('');
-  const [currentAdminPassword, setCurrentAdminPassword] = useState('');
+  const isSuper = !!currentUser && (currentUser.role === 'superadmin' || String(currentUser.email || '').toLowerCase() === 'brownjh18@gmail.com');
+  const isAuthenticated = !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || isSuper);
+  const [adminUser, setAdminUser] = useState<any>(currentUser);
   const [logs, setLogs] = useState<any[]>([]);
 
   type AdminModule = 'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'logs' | 'settings';
@@ -250,7 +248,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     });
   const uploadFile = async (file: File, folder: string) => {
     const dataUrl = await fileToDataUrl(file);
-    const r = await api.upload(dataUrl, folder, file.name, true);
+    const r = await api.upload(dataUrl, folder, file.name);
     return r.url as string;
   };
 
@@ -371,60 +369,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   if (!isAuthenticated) {
     return (
       <div className="min-h-[82vh] bg-blue-mesh flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl max-w-md w-full p-8 border border-sky-200 shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <img
-              src={KAFFIIKA_ASSETS.logo}
-              alt="Kaffiika Animal Feeds"
-              className="h-12 object-contain"
-            />
-            <div>
-              <span className="text-xs font-mono-tech uppercase text-[#065AA7] font-bold block">
-                ADMINISTRATION PORTAL
-              </span>
-              <h1 className="text-xl font-bold text-[#0A1E3C]">
-                Kaffiika ERP Sign In
-              </h1>
-            </div>
-          </div>
-
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setLoginError(null);
-              try {
-                const r = await api.adminLogin({ email: loginEmail.trim().toLowerCase(), password: loginPassword });
-                setAdminToken(r.token);
-                setAdminUser(r.user || null);
-                setIsAuthenticated(true);
-                setLoginPassword('');
-                notify('Admin signed in.');
-              } catch (err: any) {
-                setLoginError(err.message || 'Incorrect credentials.');
-              }
-            }}
-            className="space-y-4"
-          >
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Admin Email</label>
-              <input type="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="admin@kaffiikafeeds.com" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Admin Password</label>
-              <input type="password" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Enter admin password" />
-            </div>
-            {loginError && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5">{loginError}</div>}
-            <button type="submit" className="w-full py-3.5 px-5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4" />
-              <span>Sign In to Admin Dashboard</span>
-            </button>
-          </form>
+        <div className="bg-white rounded-3xl max-w-md w-full p-8 border border-sky-200 shadow-2xl text-center">
+          <img src={KAFFIIKA_ASSETS.logo} alt="Kaffiika Animal Feeds" className="h-12 object-contain mx-auto mb-4" />
+          <div className="w-14 h-14 rounded-2xl bg-[#E6EFF8] text-[#065AA7] flex items-center justify-center mx-auto mb-4"><Shield className="w-7 h-7" /></div>
+          <h1 className="text-xl font-bold text-[#0A1E3C] mb-2">Admin Access Required</h1>
+          <p className="text-sm text-slate-500 mb-6">
+            {currentUser ? 'Your account does not have admin access. Contact the super admin to be assigned an admin role.' : 'Sign in with an admin account to access the dashboard.'}
+          </p>
+          <button type="button" onClick={() => onNavigate('/')} className="w-full py-3.5 px-5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm shadow-lg cursor-pointer">Go to Home</button>
         </div>
       </div>
     );
   }
-
-  const isSuper = !!(adminUser?.isSuperAdmin || adminUser?.role === 'superadmin' || String(adminUser?.email || '').toLowerCase() === 'brownjh18@gmail.com');
 
   const navGroups: { id: string; label: string; icon: React.ElementType; items: { id: AdminModule; label: string; icon: React.ElementType; badge?: string }[] }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, items: [
@@ -494,8 +450,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <button type="button" onClick={() => { onNavigate('/products'); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#F4F7FB] hover:bg-[#E6EFF8] text-[#065AA7] text-xs font-bold cursor-pointer">
           <ExternalLink className="w-4 h-4" /> View Storefront
         </button>
-        <button type="button" onClick={() => { setAdminToken(''); setAdminUser(null); setIsAuthenticated(false); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold cursor-pointer">
-          <LogOut className="w-4 h-4" /> Sign Out
+        <button type="button" onClick={() => { onNavigate('/'); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold cursor-pointer">
+          <LogOut className="w-4 h-4" /> Exit Dashboard
         </button>
       </div>
     </div>
@@ -1636,7 +1592,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <thead className="bg-[#F4F7FB] text-slate-600 text-xs uppercase">
                     <tr>
                       <th className="text-left px-4 py-3">Time</th>
-                      <th className="text-left px-4 py-3">Actor</th>
+                      <th className="text-left px-4 py-3">Admin / User</th>
                       <th className="text-left px-4 py-3">Action</th>
                       <th className="text-left px-4 py-3">Entity</th>
                       <th className="text-left px-4 py-3">Details</th>
@@ -1666,34 +1622,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           <div className="max-w-xl bg-white rounded-2xl border border-sky-200 shadow-sm p-6 space-y-5">
             <div>
               <h3 className="text-lg font-bold text-[#0A1E3C]">Admin Settings</h3>
-              <p className="text-sm text-slate-500">Change the admin password used to access this dashboard.</p>
+              <p className="text-sm text-slate-500">Admin access is managed through normal user accounts and roles.</p>
             </div>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                try {
-                  await api.adminChangePassword({ currentPassword: currentAdminPassword, newPassword: newAdminPassword });
-                  setCurrentAdminPassword('');
-                  setNewAdminPassword('');
-                  notify('Admin password updated.');
-                } catch (err: any) {
-                  notify(err.message || 'Failed to update password');
-                }
-              }}
-              className="space-y-3"
-            >
-              <label className="block">
-                <span className="text-xs font-bold text-slate-600">Current Password</span>
-                <input type="password" value={currentAdminPassword} onChange={(e) => setCurrentAdminPassword(e.target.value)} className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" required />
-              </label>
-              <label className="block">
-                <span className="text-xs font-bold text-slate-600">New Password</span>
-                <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className="mt-1 w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="At least 6 characters" required />
-              </label>
-              <button type="submit" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">
-                <Save className="w-4 h-4" /> Save Password
-              </button>
-            </form>
+            <div className="space-y-3 text-sm">
+              <div className="p-4 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-xs font-bold uppercase text-slate-400">Signed in as</div><div className="font-bold text-[#0A1E3C]">{currentUser?.name || 'Admin'}</div><div className="text-slate-500 text-xs">{currentUser?.email}</div><div className="mt-1"><span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${isSuper ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-[#065AA7]'}`}>{isSuper ? 'SUPER ADMIN' : 'ADMIN'}</span></div></div>
+              <div className="p-4 rounded-xl bg-[#F4F7FB] border border-sky-100 text-slate-600 text-xs leading-relaxed">
+                <strong className="text-[#0A1E3C]">Role management:</strong> Only the super admin can appoint or remove admin roles from the Users module. Admin users can access this dashboard automatically after signing in.
+              </div>
+            </div>
           </div>
         )}
           </main>

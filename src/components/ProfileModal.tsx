@@ -48,7 +48,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, user, onClos
     try {
       setBusy(true);
       const dataUrl = await fileToDataUrl(file);
-      const r = await api.upload(dataUrl, 'profiles', file.name, false);
+      const r = await api.upload(dataUrl, 'profiles', file.name);
       setPhotoUrl(r.url);
       setError(null);
     } catch (err: any) { setError(err.message || 'Failed to upload image.'); }

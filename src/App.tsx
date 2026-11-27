@@ -35,7 +35,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { QuoteDrawer, QuoteItem } from './components/QuoteDrawer';
 import { AuthModal, AuthUser } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
-import { api, getToken, setToken, getAdminToken } from './lib/api';
+import { api, getToken, setToken } from './lib/api';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ProductsPage } from './pages/ProductsPage';
@@ -181,14 +181,7 @@ export function App() {
   );
   const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState<boolean>(false);
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
-  const [adminSignedIn, setAdminSignedIn] = useState<boolean>(() => !!getAdminToken());
-  useEffect(() => {
-    const check = () => setAdminSignedIn(!!getAdminToken());
-    check();
-    window.addEventListener('focus', check);
-    const i = window.setInterval(check, 1500);
-    return () => { window.removeEventListener('focus', check); window.clearInterval(i); };
-  }, []);
+  const adminSignedIn = !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || String(currentUser.email || '').toLowerCase() === 'brownjh18@gmail.com');
   const [selectedBranchId, setSelectedBranchId] =
     useState<string>('hq-kampala');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -724,6 +717,7 @@ export function App() {
 
         {currentPage === '/admin' && (
           <AdminPage
+            currentUser={currentUser}
             products={products}
             branches={branches}
             blogs={blogs}
