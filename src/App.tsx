@@ -10,6 +10,7 @@ import {
   X,
   ChevronDown,
   Building2,
+  LayoutDashboard,
   Shield,
   LogIn,
   LogOut,
@@ -34,7 +35,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { QuoteDrawer, QuoteItem } from './components/QuoteDrawer';
 import { AuthModal, AuthUser } from './components/AuthModal';
 import { ProfileModal } from './components/ProfileModal';
-import { api, getToken, setToken } from './lib/api';
+import { api, getToken, setToken, getAdminToken } from './lib/api';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ProductsPage } from './pages/ProductsPage';
@@ -180,6 +181,14 @@ export function App() {
   );
   const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState<boolean>(false);
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
+  const [adminSignedIn, setAdminSignedIn] = useState<boolean>(() => !!getAdminToken());
+  useEffect(() => {
+    const check = () => setAdminSignedIn(!!getAdminToken());
+    check();
+    window.addEventListener('focus', check);
+    const i = window.setInterval(check, 1500);
+    return () => { window.removeEventListener('focus', check); window.clearInterval(i); };
+  }, []);
   const [selectedBranchId, setSelectedBranchId] =
     useState<string>('hq-kampala');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -896,12 +905,23 @@ export function App() {
 
       {/* ==================== FLOATING WHATSAPP & TOAST NOTIFICATION ==================== */}
       {toastMessage && (
-        <div className={`fixed ${currentPage === '/admin' ? 'bottom-40 md:bottom-20' : 'bottom-20'} right-5 z-50 bg-[#061A36] text-white px-4 py-3 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-bounce`}>
+        <div className={`fixed ${currentPage === '/admin' ? 'bottom-40 md:bottom-20' : adminSignedIn ? 'bottom-36' : 'bottom-20'} right-5 z-50 bg-[#061A36] text-white px-4 py-3 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-bounce`}>
           <CheckCircle2 className="w-4 h-4 text-[#F59E0B] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
+      {adminSignedIn && currentPage !== '/admin' && (
+        <a
+          href="/admin"
+          onClick={(e) => { e.preventDefault(); handleNavigate('/admin'); }}
+          className="fixed bottom-20 right-5 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#061A36] hover:bg-[#0A1E3C] text-white font-bold text-xs sm:text-sm shadow-xl border-2 border-[#F59E0B]/40 transition-transform hover:scale-105"
+          title="Back to Admin Dashboard"
+        >
+          <LayoutDashboard className="w-4 h-4 text-[#F59E0B]" />
+          <span>Admin Dashboard</span>
+        </a>
+      )}
       <a
         href={`https://wa.me/${COMPANY_INFO.primaryPhoneClean}?text=${encodeURIComponent(
           'Hello Kaffiika Animal Feeds, I would like to inquire about animal feeds and nearest branch stock.'
