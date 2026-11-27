@@ -973,13 +973,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div><label className="block text-xs font-bold text-slate-600 mb-1">Stock (Bags)</label><input type="number" value={editingProduct.stockBags ?? 0} onChange={(e) => setEditingProduct({ ...editingProduct, stockBags: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
                   <div className="sm:col-span-3"><label className="block text-xs font-bold text-slate-600 mb-1">Summary</label><input type="text" value={editingProduct.summary} onChange={(e) => setEditingProduct({ ...editingProduct, summary: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
                   <div className="sm:col-span-3">
-                    <label className="block text-xs font-bold text-slate-600 mb-1">Product Image (upload, URL, or clear)</label>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setEditingProduct({ ...editingProduct, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="text-xs" />
-                      <button type="button" onClick={() => setEditingProduct({ ...editingProduct, imageUrl: '' })} className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove Image</button>
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Product Image</label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+                        <Upload className="w-4 h-4" /> Upload Image
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setEditingProduct({ ...editingProduct, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
+                      </label>
+                      {editingProduct.imageUrl && <button type="button" onClick={() => setEditingProduct({ ...editingProduct, imageUrl: '' })} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove Image</button>}
                     </div>
-                    <input type="text" value={editingProduct.imageUrl} onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })} className="mt-2 w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" />
-                    {editingProduct.imageUrl && <img src={editingProduct.imageUrl} alt="" className="mt-2 w-20 h-20 rounded-lg object-cover border border-sky-200" />}
+                    {editingProduct.imageUrl ? <img src={editingProduct.imageUrl} alt="" className="mt-3 w-24 h-24 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-24 h-24 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[11px] text-slate-400">No image</div>}
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end gap-2">
@@ -1471,9 +1473,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Cover Image (upload or URL)</label>
-                  <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, imageUrl: await uploadFile(f, 'blogs') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs mb-2" />
-                  <div className="flex gap-2"><input type="text" value={newBlogForm.imageUrl} onChange={(e) => setNewBlogForm({ ...newBlogForm, imageUrl: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Image URL" /><button type="button" onClick={() => setNewBlogForm({ ...newBlogForm, imageUrl: '' })} className="px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Clear</button></div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Cover Image</label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+                      <Upload className="w-4 h-4" /> Upload Image
+                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewBlogForm({ ...newBlogForm, imageUrl: await uploadFile(f, 'blogs') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
+                    </label>
+                    {newBlogForm.imageUrl && <button type="button" onClick={() => setNewBlogForm({ ...newBlogForm, imageUrl: '' })} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove</button>}
+                  </div>
+                  {newBlogForm.imageUrl ? <img src={newBlogForm.imageUrl} alt="" className="mt-3 w-full max-w-[220px] h-28 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-full max-w-[220px] h-28 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[11px] text-slate-400">No image uploaded</div>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">Video (upload or URL, optional)</label>
@@ -1590,9 +1598,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </select>
                 <textarea value={newTeamForm.bio} onChange={(e)=>setNewTeamForm({...newTeamForm,bio:e.target.value})} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Photo (upload or URL)</label>
-                  <input type="file" accept="image/*" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } }}} className="w-full text-xs mb-2" />
-                  <div className="flex gap-2"><input value={newTeamForm.photoUrl} onChange={(e)=>setNewTeamForm({...newTeamForm,photoUrl:e.target.value})} placeholder="Photo URL" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /><button type="button" onClick={()=>setNewTeamForm({...newTeamForm,photoUrl:''})} className="px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Clear</button></div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+                      <Upload className="w-4 h-4" /> Upload Photo
+                      <input type="file" accept="image/*" className="hidden" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
+                    </label>
+                    {newTeamForm.photoUrl && <button type="button" onClick={()=>setNewTeamForm({...newTeamForm,photoUrl:''})} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove</button>}
+                  </div>
+                  {newTeamForm.photoUrl ? <img src={newTeamForm.photoUrl} alt="" className="mt-3 w-20 h-20 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-20 h-20 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[10px] text-slate-400">No photo</div>}
                 </div>
                 <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>
               </form>

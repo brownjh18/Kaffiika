@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Menu,
   X,
+  ChevronDown,
   Building2,
   Shield,
   LogIn,
@@ -47,16 +48,25 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { DeliveryPolicyPage } from './pages/DeliveryPolicyPage';
 
-const NAV_PAGES: { route: PageRoute; label: string; badge?: string }[] = [
-  { route: '/', label: 'Home' },
-  { route: '/about', label: 'About Us' },
-  { route: '/products', label: 'Our Products', badge: '46' },
-  { route: '/farming-guides', label: 'Farming Guides' },
-  { route: '/calculator', label: 'Ration Calculator' },
-  { route: '/branches', label: 'Branches' },
-  { route: '/media-gallery', label: 'Blogs & Media' },
-  { route: '/contact', label: 'Contact Us' },
+type NavItem = { route: PageRoute; label: string; badge?: string };
+type NavGroup = { id: string; label: string; route?: PageRoute; items?: NavItem[] };
+const NAV_GROUPS: NavGroup[] = [
+  { id: 'home', label: 'Home', route: '/' },
+  { id: 'company', label: 'Company', items: [
+    { route: '/about', label: 'About Us' },
+    { route: '/branches', label: 'Branches' },
+  ]},
+  { id: 'products', label: 'Products', items: [
+    { route: '/products', label: 'Our Products', badge: '46' },
+    { route: '/calculator', label: 'Ration Calculator' },
+  ]},
+  { id: 'resources', label: 'Resources', items: [
+    { route: '/farming-guides', label: 'Farming Guides' },
+    { route: '/media-gallery', label: 'Blogs & Media' },
+  ]},
+  { id: 'contact', label: 'Contact', route: '/contact' },
 ];
+const NAV_PAGES: NavItem[] = NAV_GROUPS.flatMap((g) => g.items ? g.items : g.route ? [{ route: g.route, label: g.label }] : []);
 
 export function App() {
   const VALID_ROUTES: PageRoute[] = [
@@ -158,6 +168,7 @@ export function App() {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setMobileMenuOpen(false);
+    setOpenDesktopNav(null);
   };
 
   // Auth, Modal & Quote Drawer State
@@ -172,6 +183,7 @@ export function App() {
   const [selectedBranchId, setSelectedBranchId] =
     useState<string>('hq-kampala');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [openDesktopNav, setOpenDesktopNav] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -477,35 +489,41 @@ export function App() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1.5">
-            {NAV_PAGES.map((item) => {
-              const isActive = currentPage === item.route;
+            {NAV_GROUPS.map((group) => {
+              const items = group.items || [];
+              const isDirect = !items.length && group.route;
+              const isActive = isDirect ? currentPage === group.route : items.some((i) => i.route === currentPage);
+              if (isDirect) {
+                return (
+                  <a key={group.id} href={group.route} onClick={(e) => { e.preventDefault(); setOpenDesktopNav(null); handleNavigate(group.route!); }}
+                    className={`px-3 py-2 rounded-xl text-xs xl:text-sm font-bold transition-all ${isActive ? 'bg-[#065AA7] text-white shadow-xs' : 'text-[#0A1E3C] hover:bg-[#E6EFF8] hover:text-[#065AA7]'}`}>
+                    {group.label}
+                  </a>
+                );
+              }
+              const open = openDesktopNav === group.id;
               return (
-                <a
-                  key={item.route}
-                  href={item.route}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavigate(item.route);
-                  }}
-                  className={`px-3 py-2 rounded-xl text-xs xl:text-sm font-bold transition-all flex items-center gap-1.5 ${
-                    isActive
-                      ? 'bg-[#065AA7] text-white shadow-xs'
-                      : 'text-[#0A1E3C] hover:bg-[#E6EFF8] hover:text-[#065AA7]'
-                  }`}
-                >
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span
-                      className={`font-mono-tech text-[10px] px-1.5 py-0.2 rounded-full ${
-                        isActive
-                          ? 'bg-[#F59E0B] text-[#061A36]'
-                          : 'bg-[#E6EFF8] text-[#065AA7]'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
+                <div key={group.id} className="relative" onMouseEnter={() => setOpenDesktopNav(group.id)} onMouseLeave={() => setOpenDesktopNav(null)}>
+                  <button type="button" onClick={() => setOpenDesktopNav(open ? null : group.id)}
+                    className={`px-3 py-2 rounded-xl text-xs xl:text-sm font-bold transition-all flex items-center gap-1 cursor-pointer ${isActive ? 'bg-[#065AA7] text-white shadow-xs' : 'text-[#0A1E3C] hover:bg-[#E6EFF8] hover:text-[#065AA7]'}`}>
+                    <span>{group.label}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  </button>
+                  {open && (
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-sky-200 rounded-xl shadow-xl p-1.5 z-50">
+                      {items.map((item) => {
+                        const active = currentPage === item.route;
+                        return (
+                          <a key={item.route} href={item.route} onClick={(e) => { e.preventDefault(); setOpenDesktopNav(null); handleNavigate(item.route); }}
+                            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold ${active ? 'bg-[#E6EFF8] text-[#065AA7]' : 'text-[#0A1E3C] hover:bg-[#F4F7FB]'}`}>
+                            <span>{item.label}</span>
+                            {item.badge && <span className="font-mono-tech text-[10px] px-1.5 py-0.5 rounded-full bg-[#E6EFF8] text-[#065AA7]">{item.badge}</span>}
+                          </a>
+                        );
+                      })}
+                    </div>
                   )}
-                </a>
+                </div>
               );
             })}
           </nav>
@@ -568,24 +586,31 @@ export function App() {
         {/* Mobile Multi-Page Navigation Dropdown */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-sky-200 px-4 py-4 space-y-1.5 shadow-xl">
-            {NAV_PAGES.map((item) => {
-              const isActive = currentPage === item.route;
+            {NAV_GROUPS.map((group) => {
+              const items = group.items || [];
+              if (!items.length && group.route) {
+                const active = currentPage === group.route;
+                return (
+                  <a key={group.id} href={group.route} onClick={(e) => { e.preventDefault(); handleNavigate(group.route!); }}
+                    className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
+                    <span>{group.label}</span>
+                  </a>
+                );
+              }
               return (
-                <a
-                  key={item.route}
-                  href={item.route}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavigate(item.route);
-                  }}
-                  className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${
-                    isActive
-                      ? 'bg-[#065AA7] text-white'
-                      : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'
-                  }`}
-                >
-                  <span>{item.label}</span>
-                </a>
+                <div key={group.id} className="pt-1">
+                  <div className="px-3.5 py-1.5 text-[11px] font-mono-tech font-bold uppercase tracking-wider text-slate-400">{group.label}</div>
+                  {items.map((item) => {
+                    const active = currentPage === item.route;
+                    return (
+                      <a key={item.route} href={item.route} onClick={(e) => { e.preventDefault(); handleNavigate(item.route); }}
+                        className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
+                        <span>{item.label}</span>
+                        {item.badge && <span className={`font-mono-tech text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-[#F59E0B] text-[#061A36]' : 'bg-[#E6EFF8] text-[#065AA7]'}`}>{item.badge}</span>}
+                      </a>
+                    );
+                  })}
+                </div>
               );
             })}
             <div className="pt-2 border-t border-sky-100 mt-2 space-y-2">
