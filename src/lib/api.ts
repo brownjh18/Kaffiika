@@ -60,6 +60,8 @@ export const api = {
   myOrders: () => request('/api/orders/mine'),
 
   adminLogin: (body: any) => request('/api/admin/login', { method: 'POST', body: JSON.stringify(body) }),
+  adminMe: () => request('/api/admin/me', {}, true),
+  adminUpdateUserRole: (id: string, role: 'user' | 'admin') => request(`/api/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }, true),
   adminUsers: () => request('/api/admin/users', {}, true),
   adminOrders: () => request('/api/admin/orders', {}, true),
   adminLogs: () => request('/api/admin/logs', {}, true),

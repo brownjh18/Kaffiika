@@ -31,10 +31,22 @@ export async function requireAuth(req, res, next) {
   next();
 }
 
+export function isSuperAdmin(user) {
+  return !!user && (user.role === 'superadmin' || String(user.email || '').toLowerCase() === 'brownjh18@gmail.com');
+}
+
 export async function requireAdmin(req, res, next) {
   const user = await getAuthUser(req);
   if (!user) return res.status(401).json({ error: 'Authentication required' });
-  if (user.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
+  if (user.role !== 'admin' && user.role !== 'superadmin' && !isSuperAdmin(user)) return res.status(403).json({ error: 'Admin access required' });
+  req.user = user;
+  next();
+}
+
+export async function requireSuperAdmin(req, res, next) {
+  const user = await getAuthUser(req);
+  if (!user) return res.status(401).json({ error: 'Authentication required' });
+  if (!isSuperAdmin(user)) return res.status(403).json({ error: 'Super admin access required' });
   req.user = user;
   next();
 }

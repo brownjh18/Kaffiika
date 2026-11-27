@@ -93,6 +93,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onNavigate,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getAdminToken());
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [loginEmail, setLoginEmail] = useState('brownjh18@gmail.com');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [newAdminPassword, setNewAdminPassword] = useState('');
@@ -111,7 +113,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const refreshAdminData = async () => {
     try {
-      const [u, o, l] = await Promise.all([api.adminUsers().catch(() => []), api.adminOrders().catch(() => []), api.adminLogs().catch(() => [])]);
+      const [me, u, o, l] = await Promise.all([api.adminMe().catch(() => null), api.adminUsers().catch(() => []), api.adminOrders().catch(() => []), api.adminLogs().catch(() => [])]);
+      if (me && !me.error) setAdminUser(me);
       if (Array.isArray(u)) setUsers(u);
       if (Array.isArray(l)) setLogs(l);
       if (Array.isArray(o)) setAdminOrders(o);
@@ -350,35 +353,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               e.preventDefault();
               setLoginError(null);
               try {
-                const r = await api.adminLogin({ password: loginPassword });
+                const r = await api.adminLogin({ email: loginEmail.trim().toLowerCase(), password: loginPassword });
                 setAdminToken(r.token);
+                setAdminUser(r.user || null);
                 setIsAuthenticated(true);
                 setLoginPassword('');
                 notify('Admin signed in.');
               } catch (err: any) {
-                setLoginError(err.message || 'Incorrect password.');
+                setLoginError(err.message || 'Incorrect credentials.');
               }
             }}
             className="space-y-4"
           >
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                Admin Password
-              </label>
-              <input
-                type="password"
-                required
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                placeholder="Enter admin password"
-              />
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Admin Email</label>
+              <input type="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="admin@kaffiikafeeds.com" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-1">Admin Password</label>
+              <input type="password" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" placeholder="Enter admin password" />
             </div>
             {loginError && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2.5">{loginError}</div>}
-            <button
-              type="submit"
-              className="w-full py-3.5 px-5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2"
-            >
+            <button type="submit" className="w-full py-3.5 px-5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2">
               <Lock className="w-4 h-4" />
               <span>Sign In to Admin Dashboard</span>
             </button>
@@ -387,6 +383,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       </div>
     );
   }
+
+  const isSuper = !!(adminUser?.isSuperAdmin || adminUser?.role === 'superadmin' || String(adminUser?.email || '').toLowerCase() === 'brownjh18@gmail.com');
 
   const navGroups: { id: string; label: string; icon: React.ElementType; items: { id: AdminModule; label: string; icon: React.ElementType; badge?: string }[] }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, items: [
@@ -456,7 +454,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <button type="button" onClick={() => { onNavigate('/products'); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#F4F7FB] hover:bg-[#E6EFF8] text-[#065AA7] text-xs font-bold cursor-pointer">
           <ExternalLink className="w-4 h-4" /> View Storefront
         </button>
-        <button type="button" onClick={() => { setAdminToken(''); setIsAuthenticated(false); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold cursor-pointer">
+        <button type="button" onClick={() => { setAdminToken(''); setAdminUser(null); setIsAuthenticated(false); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold cursor-pointer">
           <LogOut className="w-4 h-4" /> Sign Out
         </button>
       </div>
@@ -1697,6 +1695,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                               <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full bg-sky-100 text-[#065AA7]">
                                 {String(u.provider || 'email').toUpperCase()}
                               </span>
+                              <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${u.role === 'admin' || u.role === 'superadmin' || String(u.email||'').toLowerCase()==='brownjh18@gmail.com' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
+                                {(String(u.email||'').toLowerCase()==='brownjh18@gmail.com' || u.role === 'superadmin') ? 'SUPER ADMIN' : String(u.role || 'user').toUpperCase()}
+                              </span>
                             </div>
                             <div className="text-xs text-slate-600 mt-1 flex flex-wrap gap-x-4 gap-y-1">
                               <span className="inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{u.email}</span>
@@ -1708,17 +1709,32 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div className="text-xs text-slate-500">Orders</div>
                           <div className="font-mono-tech text-lg font-bold text-[#065AA7]">{userOrders.length}</div>
                           <div className="text-[11px] text-slate-500">UGX {userOrders.reduce((s, o) => s + o.totalAmountUgx, 0).toLocaleString()}</div>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return;
-                              try { await api.adminDelete('users', u.id); notify('User deleted.'); await refreshAdminData(); }
-                              catch (e: any) { notify(e.message || 'Failed to delete user'); }
-                            }}
-                            className="mt-2 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[11px] font-bold cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Delete
-                          </button>
+                          <div className="mt-2 flex flex-col gap-1.5 items-end">
+                            {isSuper && String(u.email||'').toLowerCase() !== 'brownjh18@gmail.com' && u.id !== adminUser?.id && (
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const nextRole = (u.role === 'admin' || u.role === 'superadmin') ? 'user' : 'admin';
+                                  try { await api.adminUpdateUserRole(u.id, nextRole); notify(`${nextRole === 'admin' ? 'Appointed' : 'Removed'} admin: ${u.email}`); await refreshAdminData(); }
+                                  catch (e: any) { notify(e.message || 'Failed to update role'); }
+                                }}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer ${(u.role === 'admin' || u.role === 'superadmin') ? 'bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-700' : 'bg-[#E6EFF8] hover:bg-[#065AA7] hover:text-white text-[#065AA7]'}`}
+                              >
+                                {(u.role === 'admin' || u.role === 'superadmin') ? 'Remove Admin' : 'Make Admin'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return;
+                                try { await api.adminDelete('users', u.id); notify('User deleted.'); await refreshAdminData(); }
+                                catch (e: any) { notify(e.message || 'Failed to delete user'); }
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[11px] font-bold cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
 

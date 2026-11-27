@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { supabase, logAudit } from '../db.js';
-import { requireAdmin, publicUser, hashPassword, signToken } from '../auth.js';
+import { requireAdmin, requireSuperAdmin, isSuperAdmin, publicUser, hashPassword, signToken } from '../auth.js';
 
 export const adminRouter = express.Router();
 
@@ -17,19 +17,29 @@ adminRouter.post('/login', async (req, res, next) => {
   try {
     const { password, email } = req.body || {};
     const adminEmail = String(email || process.env.ADMIN_EMAIL || 'admin@kaffiikafeeds.com').toLowerCase();
-    const { data: user, error } = await supabase.from('users').select('*').eq('email', adminEmail).maybeSingle();
+    const { data: found, error } = await supabase.from('users').select('*').eq('email', adminEmail).maybeSingle();
     if (error) throw error;
-    if (!user || user.role !== 'admin' || !bcrypt.compareSync(String(password || ''), user.password_hash || '')) {
+    let user = found;
+    if (user && isSuperAdmin(user) && user.role !== 'superadmin') {
+      const { data: up } = await supabase.from('users').update({ role: 'superadmin', updated_at: nowIso() }).eq('id', user.id).select('*').single();
+      if (up) user = up;
+    }
+    const allowed = !!user && (user.role === 'admin' || user.role === 'superadmin' || isSuperAdmin(user));
+    if (!allowed || !bcrypt.compareSync(String(password || ''), user.password_hash || '')) {
       await logAudit({ actorEmail: adminEmail, actorRole: 'admin', action: 'admin.login.failed', entityType: 'user', ip: req.ip });
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
     const token = signToken(user);
-    await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: 'admin', action: 'admin.login.success', entityType: 'user', entityId: user.id, ip: req.ip });
+    await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: user.role, action: 'admin.login.success', entityType: 'user', entityId: user.id, ip: req.ip });
     res.json({ token, user: publicUser(user) });
   } catch (e) { next(e); }
 });
 
 adminRouter.use(requireAdmin);
+
+adminRouter.get('/me', async (req, res) => {
+  res.json({ ...publicUser(req.user), isSuperAdmin: isSuperAdmin(req.user) });
+});
 
 // Users
 adminRouter.get('/users', async (_req, res, next) => {
@@ -50,6 +60,22 @@ adminRouter.delete('/users/:id', async (req, res, next) => {
     if (error) throw error;
     await logAudit({ actorUserId: req.user.id, actorEmail: req.user.email, actorRole: req.user.role, action: 'user.delete', entityType: 'user', entityId: req.params.id, ip: req.ip });
     res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+adminRouter.put('/users/:id/role', requireSuperAdmin, async (req, res, next) => {
+  try {
+    const { role } = req.body || {};
+    if (!['user', 'admin'].includes(role)) return res.status(400).json({ error: 'Role must be user or admin' });
+    if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot change your own role' });
+    const { data: target, error: findErr } = await supabase.from('users').select('*').eq('id', req.params.id).maybeSingle();
+    if (findErr) throw findErr;
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    if (isSuperAdmin(target) && role !== 'admin') return res.status(400).json({ error: 'Cannot demote super admin' });
+    const { data, error } = await supabase.from('users').update({ role, updated_at: nowIso() }).eq('id', req.params.id).select('id,name,email,provider,photo_url,verified,role,created_at,updated_at').single();
+    if (error) throw error;
+    await logAudit({ actorUserId: req.user.id, actorEmail: req.user.email, actorRole: req.user.role, action: 'user.role.update', entityType: 'user', entityId: req.params.id, details: { role, email: target.email }, ip: req.ip });
+    res.json(publicUser(data));
   } catch (e) { next(e); }
 });
 
