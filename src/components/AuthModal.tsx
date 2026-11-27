@@ -93,9 +93,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuth })
       if (mode === 'signup') {
         if (!name.trim()) throw new Error('Name is required');
         const r = await api.register({ name: name.trim(), email: normalizedEmail, password });
+        if (r?.token && r?.user) { finish(r.token, r.user); return; }
         setPendingEmail(normalizedEmail); setStep('verify'); setInfo(`Verification code sent to ${normalizedEmail}.${r.demoCode ? ` Demo code: ${r.demoCode}` : ''}`);
       } else {
         const r = await api.login({ email: normalizedEmail, password });
+        if (r?.token && r?.user) { finish(r.token, r.user); return; }
         setPendingEmail(normalizedEmail); setStep('verify'); setInfo(`Verification code sent to ${normalizedEmail}.${r.demoCode ? ` Demo code: ${r.demoCode}` : ''}`);
       }
     } catch (e: any) { setError(e.message || 'Authentication failed'); }

@@ -14,18 +14,18 @@ authRouter.post('/register', async (req, res, next) => {
     const { data: existing } = await supabase.from('users').select('id').eq('email', normalizedEmail).maybeSingle();
     if (existing) return res.status(409).json({ error: 'An account with this email already exists' });
 
-    const code = makeVerificationCode();
     const t = nowIso();
     const user = {
       id: makeId('u'), name: String(name).trim(), email: normalizedEmail,
       password_hash: hashPassword(String(password)), provider: 'email', photo_url: null,
-      verified: false, verification_code: code, verification_expires: Date.now() + 15 * 60 * 1000,
+      verified: true, verification_code: null, verification_expires: null,
       role: 'user', created_at: t, updated_at: t,
     };
     const { error } = await supabase.from('users').insert(user);
     if (error) throw error;
     await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: 'user', action: 'auth.register', entityType: 'user', entityId: user.id, ip: req.ip });
-    res.json({ ok: true, userId: user.id, email: user.email, verificationRequired: true, demoCode: code });
+    const token = signToken(user);
+    res.json({ token, user: publicUser(user) });
   } catch (e) { next(e); }
 });
 
@@ -37,10 +37,11 @@ authRouter.post('/login', async (req, res, next) => {
     if (!user || user.provider !== 'email' || !verifyPassword(String(password || ''), user.password_hash)) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
-    const code = makeVerificationCode();
-    await supabase.from('users').update({ verification_code: code, verification_expires: Date.now() + 15 * 60 * 1000, updated_at: nowIso() }).eq('id', user.id);
-    await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: user.role, action: 'auth.login.verification_sent', entityType: 'user', entityId: user.id, ip: req.ip });
-    res.json({ ok: true, userId: user.id, email: user.email, verificationRequired: true, demoCode: code });
+    await supabase.from('users').update({ verified: true, verification_code: null, verification_expires: null, updated_at: nowIso() }).eq('id', user.id);
+    const updated = { ...user, verified: true, verification_code: null, verification_expires: null };
+    await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: user.role, action: 'auth.login.success', entityType: 'user', entityId: user.id, ip: req.ip });
+    const token = signToken(updated);
+    res.json({ token, user: publicUser(updated) });
   } catch (e) { next(e); }
 });
 
