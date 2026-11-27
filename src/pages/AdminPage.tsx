@@ -471,10 +471,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       )}
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="md:hidden mb-4 flex items-center justify-between bg-white border border-sky-200 rounded-xl p-3">
-          <button type="button" onClick={() => setMobileNavOpen(true)} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E6EFF8] text-[#065AA7] text-xs font-bold cursor-pointer"><Menu className="w-4 h-4" /> Menu</button>
-          <div className="text-xs font-bold text-slate-600 truncate ml-3">{navGroups.flatMap(g => g.items).find(i => i.id === activeModule)?.label}</div>
-        </div>
         <div className="flex gap-6 items-start">
           <aside className="hidden md:block w-72 shrink-0 sticky top-4">
             <div className="bg-white border border-sky-200 rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-2rem)]">
