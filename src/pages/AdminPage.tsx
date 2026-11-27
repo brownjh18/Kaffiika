@@ -1545,8 +1545,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-xs">
-                      <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-slate-400 font-bold uppercase text-[10px]">Orders</div><div className="font-mono-tech font-bold text-[#065AA7] text-lg">{userOrders.length}</div></div>
-                      <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 col-span-1 sm:col-span-2"><div className="text-slate-400 font-bold uppercase text-[10px]">Total Spend</div><div className="font-mono-tech font-bold text-[#0A1E3C] text-lg">UGX {userOrders.reduce((s,o)=>s+o.totalAmountUgx,0).toLocaleString()}</div></div>
+                      {!isAdminRole && <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-slate-400 font-bold uppercase text-[10px]">Orders</div><div className="font-mono-tech font-bold text-[#065AA7] text-lg">{userOrders.length}</div></div>}
+                      {!isAdminRole && <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 col-span-1 sm:col-span-2"><div className="text-slate-400 font-bold uppercase text-[10px]">Total Spend</div><div className="font-mono-tech font-bold text-[#0A1E3C] text-lg">UGX {userOrders.reduce((s,o)=>s+o.totalAmountUgx,0).toLocaleString()}</div></div>}
                       <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-slate-400 font-bold uppercase text-[10px]">User ID</div><div className="font-mono-tech text-[11px] text-slate-600 break-all">{u.id || '—'}</div></div>
                     </div>
 
@@ -1559,19 +1559,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       <button type="button" onClick={async () => { if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return; try { await api.adminDelete('users', u.id); notify('User deleted.'); setSelectedUserDetail(null); await refreshAdminData(); } catch (e: any) { notify(e.message || 'Failed to delete user'); } }} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-xs font-bold cursor-pointer"><Trash2 className="w-4 h-4" /> Delete User</button>
                     </div>
 
-                    <div>
-                      <div className="text-xs font-bold text-slate-600 mb-2">Order History</div>
-                      {userOrders.length === 0 ? <div className="text-xs text-slate-400">No orders placed by this user yet.</div> : (
-                        <div className="space-y-2">
-                          {userOrders.map((o) => (
-                            <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 text-xs">
-                              <div><span className="font-mono-tech font-bold text-[#065AA7]">{o.reference}</span><span className="text-slate-500 ml-2">{o.createdAt}</span><div className="text-slate-600 mt-0.5">{o.totalBags} bags • {o.branchName}</div></div>
-                              <div className="flex items-center gap-2"><span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : o.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : o.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{o.status}</span><span className="font-mono-tech font-bold text-[#0A1E3C]">UGX {o.totalAmountUgx.toLocaleString()}</span></div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {!isAdminRole && (
+                      <div>
+                        <div className="text-xs font-bold text-slate-600 mb-2">Order History</div>
+                        {userOrders.length === 0 ? <div className="text-xs text-slate-400">No orders placed by this user yet.</div> : (
+                          <div className="space-y-2">
+                            {userOrders.map((o) => (
+                              <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 text-xs">
+                                <div><span className="font-mono-tech font-bold text-[#065AA7]">{o.reference}</span><span className="text-slate-500 ml-2">{o.createdAt}</span><div className="text-slate-600 mt-0.5">{o.totalBags} bags • {o.branchName}</div></div>
+                                <div className="flex items-center gap-2"><span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : o.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : o.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{o.status}</span><span className="font-mono-tech font-bold text-[#0A1E3C]">UGX {o.totalAmountUgx.toLocaleString()}</span></div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
