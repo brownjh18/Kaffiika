@@ -448,72 +448,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           );
         })}
       </nav>
+      <div className="p-3 border-t border-sky-200 space-y-2">
+        <button type="button" onClick={() => { onNavigate('/products'); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#F4F7FB] hover:bg-[#E6EFF8] text-[#065AA7] text-xs font-bold cursor-pointer">
+          <ExternalLink className="w-4 h-4" /> View Storefront
+        </button>
+        <button type="button" onClick={() => { setAdminToken(''); setIsAuthenticated(false); setMobileNavOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold cursor-pointer">
+          <LogOut className="w-4 h-4" /> Sign Out
+        </button>
+      </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#F4F7FB] pb-20 md:pb-0">
-      {/* Admin Top Header Bar */}
-      <div className="bg-[#061A36] text-white border-b border-sky-400/20 py-6">
-        <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#065AA7] border border-sky-400/40 flex items-center justify-center">
-              <img
-                src={KAFFIIKA_ASSETS.accountIcon}
-                alt="Admin"
-                className="w-6 h-6 object-contain brightness-0 invert"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono-tech uppercase tracking-wider px-2 py-0.5 rounded bg-[#F59E0B] text-[#061A36] font-bold">
-                  ERP ADMIN PORTAL
-                </span>
-                <span className="text-xs text-sky-300 font-mono-tech">
-                  {COMPANY_INFO.email}
-                </span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mt-0.5">
-                Kaffiika Animal Feeds — Management Console
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <a
-              href="/products"
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigate('/products');
-              }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-sky-200 border border-white/15"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>View Storefront</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={() => setActiveModule('logs')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 text-xs font-bold cursor-pointer"
-              title="View system activity logs"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Logs</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setAdminToken(''); setIsAuthenticated(false); }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 text-xs font-bold cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Admin Toast Notification */}
       {adminToast && (
         <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 bg-[#061A36] text-white px-5 py-3.5 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold">
@@ -1829,7 +1776,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-sky-200 px-2 py-1.5">
         <div className="grid grid-cols-5 gap-1">
-          {navGroups.map((group) => {
+          {navGroups.slice(0, 4).map((group) => {
             const GroupIcon = group.icon;
             const active = activeGroup === group.id;
             const target = group.items[0].id;
@@ -1840,6 +1787,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </button>
             );
           })}
+          <button type="button" onClick={() => setMobileNavOpen(true)} className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-[10px] font-bold cursor-pointer ${mobileNavOpen || activeGroup === 'system' ? 'text-[#065AA7] bg-[#E6EFF8]' : 'text-slate-500'}`}>
+            <Menu className="w-5 h-5" />
+            <span>Menu</span>
+          </button>
         </div>
       </nav>
     </div>
