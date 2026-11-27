@@ -62,9 +62,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuth })
       const el = googleBtnRef.current;
       if (!google?.accounts?.id || !el) return;
       try {
-        const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-        const loginUri = `${apiBase || window.location.origin}/api/auth/google/callback`;
-        sessionStorage.setItem('kaffiika_google_remember', rememberMeRef.current ? '1' : '0');
         google.accounts.id.initialize({
           client_id: googleClientId,
           callback: async (response: any) => {
@@ -75,8 +72,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuth })
             } catch (e: any) { setError(e.message || 'Google sign-in failed'); }
             finally { setBusy(false); }
           },
-          ux_mode: 'redirect',
-          login_uri: loginUri,
           auto_select: false, cancel_on_tap_outside: true,
         });
         el.innerHTML = '';

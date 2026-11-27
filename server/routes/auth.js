@@ -106,37 +106,6 @@ authRouter.post('/google', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-authRouter.post('/google/callback', async (req, res, next) => {
-  try {
-    const credential = req.body?.credential;
-    const frontend = (process.env.FRONTEND_URL || process.env.CORS_ORIGIN?.split(',')[0]?.trim() || '/').replace(/\/$/, '') || '/';
-    if (!credential) return res.redirect(`${frontend}/#google_auth_error=missing_credential`);
-    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
-    if (!r.ok) return res.redirect(`${frontend}/#google_auth_error=invalid_credential`);
-    const payload = await r.json();
-    const aud = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
-    if (aud && payload.aud !== aud) return res.redirect(`${frontend}/#google_auth_error=audience_mismatch`);
-    const email = String(payload.email || '').toLowerCase().trim();
-    if (!email || (String(payload.email_verified) !== 'true' && payload.email_verified !== true)) return res.redirect(`${frontend}/#google_auth_error=invalid_email`);
-    let { data: user } = await supabase.from('users').select('*').eq('email', email).maybeSingle();
-    const t = nowIso();
-    if (!user) {
-      const newUser = { id: makeId('u'), name: String(payload.name || email), email, password_hash: null, provider: 'google', photo_url: payload.picture || null, verified: true, verification_code: null, verification_expires: null, role: 'user', created_at: t, updated_at: t };
-      const { error } = await supabase.from('users').insert(newUser);
-      if (error) throw error;
-      user = newUser;
-      await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: 'user', action: 'auth.google.register', entityType: 'user', entityId: user.id, ip: req.ip });
-    } else {
-      await supabase.from('users').update({ name: user.name || String(payload.name || email), photo_url: user.photo_url || payload.picture || null, verified: true, updated_at: t }).eq('id', user.id);
-      const { data: updated } = await supabase.from('users').select('*').eq('id', user.id).single();
-      user = updated;
-      await logAudit({ actorUserId: user.id, actorEmail: user.email, actorRole: user.role, action: 'auth.google.login', entityType: 'user', entityId: user.id, ip: req.ip });
-    }
-    const token = signToken(user);
-    res.redirect(`${frontend}/#google_auth_token=${encodeURIComponent(token)}`);
-  } catch (e) { next(e); }
-});
-
 authRouter.get('/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
 
 authRouter.put('/profile', requireAuth, async (req, res, next) => {

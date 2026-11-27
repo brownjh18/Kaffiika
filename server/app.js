@@ -16,7 +16,6 @@ export const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(',').map(s => s.trim()).filter(Boolean) || true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
 
 let seeded;
 export async function ensureSeeded() {
