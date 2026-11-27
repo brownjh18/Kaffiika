@@ -177,7 +177,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     category: 'Farmer Training',
     summary: '',
     location: '',
-    imageUrl: 'https://kaffiikafeeds.com/public/uploads/news/post_20220418163035235.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1200&q=80&auto=format&fit=crop',
     videoUrl: '',
     content: '',
   });
@@ -311,7 +311,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       summary: '',
       location: '',
       imageUrl:
-        'https://kaffiikafeeds.com/public/uploads/news/post_20220418163035235.jpg',
+        'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1200&q=80&auto=format&fit=crop',
       videoUrl: '',
       content: '',
     });

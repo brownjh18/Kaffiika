@@ -38,14 +38,14 @@
 
 .bg-kaffiika-breadcrumb {
   background-image: linear-gradient(135deg, rgba(6, 26, 54, 0.62) 0%, rgba(6, 90, 167, 0.52) 100%),
-                    url('https://kaffiikafeeds.com/public/assets/frontend/images/breadcrumb-bg.jpg');
+                    url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
 }
 
 .bg-kaffiika-parallax {
   background-image: linear-gradient(135deg, rgba(6, 26, 54, 0.68) 0%, rgba(6, 90, 167, 0.58) 100%),
-                    url('https://kaffiikafeeds.com/public/assets/frontend/images/parallax-img_2048x.jpg');
+                    url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
 }

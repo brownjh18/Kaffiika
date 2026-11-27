@@ -12,10 +12,18 @@ const TOKEN_KEY = 'kaffiika_auth_token';
 const ADMIN_TOKEN_KEY = 'kaffiika_admin_token';
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-export function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
-export function setToken(t: string) { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }
-export function getAdminToken() { return localStorage.getItem(ADMIN_TOKEN_KEY) || ''; }
-export function setAdminToken(t: string) { if (t) localStorage.setItem(ADMIN_TOKEN_KEY, t); else localStorage.removeItem(ADMIN_TOKEN_KEY); }
+export function getToken() { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || ''; }
+export function setToken(t: string, remember = true) {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  if (t) (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, t);
+}
+export function getAdminToken() { return localStorage.getItem(ADMIN_TOKEN_KEY) || sessionStorage.getItem(ADMIN_TOKEN_KEY) || ''; }
+export function setAdminToken(t: string, remember = true) {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  if (t) (remember ? localStorage : sessionStorage).setItem(ADMIN_TOKEN_KEY, t);
+}
 
 async function request(path: string, opts: RequestInit = {}, admin = false) {
   const token = admin ? getAdminToken() : getToken();

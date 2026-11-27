@@ -137,81 +137,81 @@ export interface CustomerOrder {
 }
 
 export const KAFFIIKA_ASSETS = {
-  logo: 'https://kaffiikafeeds.com/public/assets/frontend/images/logo.png',
-  koudijsLogo: 'https://kaffiikafeeds.com/public/assets/frontend/images/koudijs_logo.jpg',
-  favicon: 'https://kaffiikafeeds.com/public/assets/frontend/images/favicon_32x32.png',
-  breadcrumbBg: 'https://kaffiikafeeds.com/public/assets/frontend/images/breadcrumb-bg.jpg',
-  parallaxBg: 'https://kaffiikafeeds.com/public/assets/frontend/images/parallax-img_2048x.jpg',
-  testimonialBg: 'https://kaffiikafeeds.com/public/assets/frontend/images/testimonial-bg.jpg',
-  accountIcon: 'https://kaffiikafeeds.com/public/assets/frontend/images/account.png',
+  logo: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&q=80&auto=format&fit=crop',
+  koudijsLogo: 'https://images.unsplash.com/photo-1599305090598-fe179d501227?w=300&q=80&auto=format&fit=crop',
+  favicon: '/favicon.svg',
+  breadcrumbBg: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format&fit=crop',
+  parallaxBg: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format&fit=crop',
+  testimonialBg: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1600&q=80&auto=format&fit=crop',
+  accountIcon: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200&q=80&auto=format&fit=crop',
   banners: [
-    'https://kaffiikafeeds.com/public/assets/frontend/images/main-banner-1_2048x.jpg',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/main-banner-2_2048x.jpg',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/main-banner-3_2048x.jpg',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/main-banner-4_2048x.jpg',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/main-banner-5_2048x.jpg',
+    'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=1600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=1600&q=80&auto=format&fit=crop',
   ],
   productUploads: {
-    layers: 'https://kaffiikafeeds.com/public/uploads/images/layers.jpg',
-    broilers: 'https://kaffiikafeeds.com/public/uploads/images/broilers.jpg',
-    default: 'https://kaffiikafeeds.com/public/uploads/images/default.jpg',
-    knursemeal: 'https://kaffiikafeeds.com/public/uploads/images/pdt20230325105340773.jpg',
-    cows: 'https://kaffiikafeeds.com/public/uploads/images/cows.jpg',
-    tilapia: 'https://kaffiikafeeds.com/public/uploads/images/tilapia.jpg',
+    layers: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=900&q=80&auto=format&fit=crop',
+    broilers: 'https://images.unsplash.com/photo-1612170153139-6f881ff067e0?w=900&q=80&auto=format&fit=crop',
+    default: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=900&q=80&auto=format&fit=crop',
+    knursemeal: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=900&q=80&auto=format&fit=crop',
+    cows: 'https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=900&q=80&auto=format&fit=crop',
+    tilapia: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=900&q=80&auto=format&fit=crop',
   },
   services: [
-    'https://kaffiikafeeds.com/public/assets/frontend/images/service1.png',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/service2.png',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/service3.png',
-    'https://kaffiikafeeds.com/public/assets/frontend/images/service4.png',
+    'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=600&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=600&q=80&auto=format&fit=crop',
   ],
   payments: {
-    mtn: 'https://kaffiikafeeds.com/public/assets/frontend/images/mtn.png',
-    airtel: 'https://kaffiikafeeds.com/public/assets/frontend/images/airtel.png',
-    visa: 'https://kaffiikafeeds.com/public/assets/frontend/images/visa.png',
-    playStore: 'https://kaffiikafeeds.com/public/assets/frontend/images/play-store.png',
-    appStore: 'https://kaffiikafeeds.com/public/assets/frontend/images/app-store.png',
+    mtn: 'https://upload.wikimedia.org/wikipedia/commons/9/93/MTN_Logo.svg',
+    airtel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Airtel_logo-01.png/320px-Airtel_logo-01.png',
+    visa: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg',
+    playStore: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
+    appStore: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg',
   },
   gallery: [
     {
       id: 'gal-1',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/one.jpg',
+      url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=800&q=80&auto=format&fit=crop',
       title: 'Kaffiika Farmer Training & Workshop Session',
       category: 'Farmer Training',
     },
     {
       id: 'gal-2',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/two.jpg',
+      url: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=800&q=80&auto=format&fit=crop',
       title: 'Poultry & Livestock Feed Formulation Advisory',
       category: 'Field Support',
     },
     {
       id: 'gal-3',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/three.jpg',
+      url: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=800&q=80&auto=format&fit=crop',
       title: 'Koudijs × Kaffiika Technical Seminar',
       category: 'Partnership',
     },
     {
       id: 'gal-4',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/four.jpg',
+      url: 'https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=800&q=80&auto=format&fit=crop',
       title: 'Commercial Farm Visit & Ration Inspection',
       category: 'On-Farm Visit',
     },
     {
       id: 'gal-5',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/five.jpg',
+      url: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=800&q=80&auto=format&fit=crop',
       title: 'Regional Branch Stock & Distribution Dispatch',
       category: 'Distribution',
     },
     {
       id: 'gal-6',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/six.jpg',
+      url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80&auto=format&fit=crop',
       title: 'Ugandan Poultry & Piggery Producers Engagement',
       category: 'Community',
     },
     {
       id: 'gal-7',
-      url: 'https://kaffiikafeeds.com/public/assets/frontend/images/gallery/seven.jpg',
+      url: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80&auto=format&fit=crop',
       title: 'Kaffiika Animal Feeds Quality Assurance Team',
       category: 'Operations',
     },
@@ -1707,7 +1707,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['+256 782 478 743'],
     department: 'Executive Leadership',
     bio: 'Spearheads Kaffiika Animal Feeds’ vision since 2006, building Uganda’s most trusted poultry, piggery, dairy, and aquaculture nutrition network.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/milly.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'baguma-francis',
@@ -1717,7 +1717,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['0784-085-265'],
     department: 'Executive Leadership',
     bio: 'Leads strategic partnerships with Koudijs Animal Nutrition, commercial distribution, and business growth.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/baguma.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'emmanuel-sekasi',
@@ -1727,7 +1727,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['0759-761-585'],
     department: 'Commercial & Operations',
     bio: 'Oversees daily supply chain reliability, quality assurance, and technical service delivery across all 30+ Kaffiika branches.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/emma.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'alex-mbonigaba',
@@ -1737,7 +1737,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['0755-980-160', '0775-128-296'],
     department: 'Regional Sales Management',
     bio: 'Coordinates farmer technical trainings, on-farm ration formulation support, and regional wholesale distribution.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/alex.png',
+    photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'jimmy-mugenyi',
@@ -1747,7 +1747,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['0777-181-051'],
     department: 'Regional Sales Management',
     bio: 'Supports commercial poultry, piggery, and aquaculture farms with customized feeding programs and branch stock availability.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/Jimmy.png',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'senyange-john-bosco',
@@ -1757,7 +1757,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     phones: ['0702-241-761'],
     department: 'Regional Sales Management',
     bio: 'Provides direct technical sales advisory and distributor support for farmers across Central, Eastern, and Western Uganda.',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/Ssenyange.png',
+    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80&auto=format&fit=crop&face',
   },
 ];
 
@@ -1772,7 +1772,7 @@ export const TESTIMONIALS: Testimonial[] = [
     quote:
       'I was directed to one of the kaffiika shops by a friend who has a pig farm, i bought for my pigs kplc 20 and from that time i have never looked back. Thank you kaffiika and koudijs for your feeds.',
     highlightMetric: 'KPLC 20 Piglet Success',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/person2.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'rubare-claire',
@@ -1784,7 +1784,7 @@ export const TESTIMONIALS: Testimonial[] = [
     quote:
       "I can't believe how far i have come in the last six months. I didn't really think these feeds would do much to my chicken because i had tried other feeds and hadn't seen much improvement in production like i have seen now.",
     highlightMetric: '6-Month Egg & Growth Surge',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/person3.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80&auto=format&fit=crop&face',
   },
   {
     id: 'tito-okecho',
@@ -1795,7 +1795,7 @@ export const TESTIMONIALS: Testimonial[] = [
     productUsed: 'Kaffiika Animal Feeds',
     quote: 'All i want to say is thank you kaffiika animal feeds.',
     highlightMetric: 'Trusted Quality Feeds',
-    photoUrl: 'https://kaffiikafeeds.com/public/assets/frontend/images/person4.jpg',
+    photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80&auto=format&fit=crop&face',
   },
 ];
 
@@ -2029,7 +2029,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Seasonal Promotions',
     summary:
       'Black Friday Sales across Kaffiika Animal Feeds branches! Enjoy special discounts on poultry, piggery, dairy, and fish feeds.',
-    imageUrl: 'https://kaffiikafeeds.com/public/uploads/news/post_202211161158198789.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200&q=80&auto=format&fit=crop',
     content: [
       'Kaffiika Animal Feeds rewards loyal Ugandan farmers with annual Black Friday Sales and seasonal bulk discounts across all our branches.',
       'Stock up on Koudijs Layer Concentrates (KLC 20, KLC 10, KLC 5), Broiler Concentrates (KBC 35/30), Piglet Concentrates (KPLC20, Knursemeal), and Extruded Tilapia & Catfish Feeds at special promotional prices.',
@@ -2043,7 +2043,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Farmer Training',
     summary:
       'JINJA GET READY! For a poultry and piggery training in Jinja. FREE ENTRY at Jinja City Town Hall (9:00am). Theme: Focusing on Efficient Feeding and Modern Practices for Best Technical Results.',
-    imageUrl: 'https://kaffiikafeeds.com/public/uploads/news/post_20220418163035235.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1200&q=80&auto=format&fit=crop',
     location: 'Jinja City Town Hall • Date: 30th April 2022 • Time: 9:00am',
     contacts: ['+256 755 247149'],
     content: [
@@ -2060,7 +2060,7 @@ export const BLOG_POSTS: BlogPost[] = [
     category: 'Koudijs Partnership',
     summary:
       'You can secure your future with Koudijs Nutritional Feeds — precision Dutch livestock nutrition available at all Kaffiika branches.',
-    imageUrl: 'https://kaffiikafeeds.com/public/uploads/news/post_202203311429587258.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1200&q=80&auto=format&fit=crop',
     content: [
       'You can secure your future with Koudijs Nutritional Feeds. As the main supplier of Koudijs products in Uganda, Kaffiika Animal Feeds empowers commercial and smallholder farmers to achieve predictable high yields.',
       'By combining Koudijs concentrates with locally available maize and maize bran, farmers dramatically reduce feed cost per kilogram of meat, milk, and eggs while maintaining international nutritional standards.',
