@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Phone,
   Mail,
@@ -192,7 +192,18 @@ export function App() {
   const [selectedBranchId, setSelectedBranchId] =
     useState<string>('hq-kampala');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const [openDesktopNav, setOpenDesktopNav] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) setMobileMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('touchstart', onDocClick);
+    return () => { document.removeEventListener('mousedown', onDocClick); document.removeEventListener('touchstart', onDocClick); };
+  }, [mobileMenuOpen]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -581,72 +592,68 @@ export function App() {
               </span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              className="lg:hidden p-2.5 rounded-xl bg-[#E6EFF8] text-[#065AA7] cursor-pointer"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Multi-Page Navigation Dropdown */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-sky-200 px-4 py-4 space-y-1.5 shadow-xl">
-            {NAV_GROUPS.map((group) => {
-              const items = group.items || [];
-              if (!items.length && group.route) {
-                const active = currentPage === group.route;
-                return (
-                  <a key={group.id} href={group.route} onClick={(e) => { e.preventDefault(); handleNavigate(group.route!); }}
-                    className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
-                    <span>{group.label}</span>
-                  </a>
-                );
-              }
-              return (
-                <div key={group.id} className="pt-1">
-                  <div className="px-3.5 py-1.5 text-[11px] font-mono-tech font-bold uppercase tracking-wider text-slate-400">{group.label}</div>
-                  {items.map((item) => {
-                    const active = currentPage === item.route;
+            <div className="relative lg:hidden" ref={mobileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                className="p-2.5 rounded-xl bg-[#E6EFF8] text-[#065AA7] cursor-pointer"
+                aria-label="Toggle Menu"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              {mobileMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] max-h-[70vh] overflow-y-auto bg-white border border-sky-200 rounded-2xl shadow-2xl p-3 space-y-1.5 z-[60]">
+                  {NAV_GROUPS.map((group) => {
+                    const items = group.items || [];
+                    if (!items.length && group.route) {
+                      const active = currentPage === group.route;
+                      return (
+                        <a key={group.id} href={group.route} onClick={(e) => { e.preventDefault(); handleNavigate(group.route!); }}
+                          className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
+                          <span>{group.label}</span>
+                        </a>
+                      );
+                    }
                     return (
-                      <a key={item.route} href={item.route} onClick={(e) => { e.preventDefault(); handleNavigate(item.route); }}
-                        className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
-                        <span>{item.label}</span>
-                        {item.badge && <span className={`font-mono-tech text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-[#F59E0B] text-[#061A36]' : 'bg-[#E6EFF8] text-[#065AA7]'}`}>{item.badge}</span>}
-                      </a>
+                      <div key={group.id} className="pt-1">
+                        <div className="px-3.5 py-1.5 text-[11px] font-mono-tech font-bold uppercase tracking-wider text-slate-400">{group.label}</div>
+                        {items.map((item) => {
+                          const active = currentPage === item.route;
+                          return (
+                            <a key={item.route} href={item.route} onClick={(e) => { e.preventDefault(); handleNavigate(item.route); }}
+                              className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm ${active ? 'bg-[#065AA7] text-white' : 'text-[#0A1E3C] hover:bg-[#E6EFF8]'}`}>
+                              <span>{item.label}</span>
+                              {item.badge && <span className={`font-mono-tech text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-[#F59E0B] text-[#061A36]' : 'bg-[#E6EFF8] text-[#065AA7]'}`}>{item.badge}</span>}
+                            </a>
+                          );
+                        })}
+                      </div>
                     );
                   })}
+                  <div className="pt-2 border-t border-sky-100 mt-2 space-y-2">
+                    {currentUser ? (
+                      <>
+                        <button type="button" onClick={() => { setIsProfileModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#E6EFF8] text-[#065AA7] cursor-pointer">
+                          <span className="truncate">My Profile ({currentUser.name})</span>
+                          <User className="w-4 h-4" />
+                        </button>
+                        <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 cursor-pointer">
+                          <span>Sign Out</span>
+                          <LogOut className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#065AA7] text-white cursor-pointer">
+                        <span>Sign In / Create Account</span>
+                        <LogIn className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
-            <div className="pt-2 border-t border-sky-100 mt-2 space-y-2">
-              {currentUser ? (
-                <>
-                  <button type="button" onClick={() => { setIsProfileModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#E6EFF8] text-[#065AA7] cursor-pointer">
-                    <span className="truncate">My Profile ({currentUser.name})</span>
-                    <User className="w-4 h-4" />
-                  </button>
-                  <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 cursor-pointer">
-                    <span>Sign Out</span>
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <button type="button" onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full flex items-center justify-between py-2.5 px-3.5 rounded-xl font-bold text-sm bg-[#065AA7] text-white cursor-pointer">
-                  <span>Sign In / Create Account</span>
-                  <LogIn className="w-4 h-4" />
-                </button>
               )}
             </div>
           </div>
-        )}
+        </div>
       </header>
 
       {/* ==================== MULTI-PAGE ROUTER VIEWPORT ==================== */}

@@ -140,6 +140,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const [users, setUsers] = useState<any[]>([]);
   const [adminOrders, setAdminOrders] = useState<CustomerOrder[]>(orders);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<CustomerOrder | null>(null);
 
   useEffect(() => { setAdminOrders(orders); }, [orders]);
 
@@ -1061,119 +1063,79 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
         {/* ==================== MODULE 3: CUSTOMER ORDERS & DISPATCH ==================== */}
         {activeModule === 'orders' && (
-          <div className="space-y-5">
-            <div className="bg-white p-5 rounded-2xl border border-sky-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-[#0A1E3C]">
-                  Customer Feed Orders & Proforma Quotes ({adminOrders.length})
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Any quote submitted by a farmer in the storefront Quote Drawer appears
-                  here automatically.
-                </p>
+          <div className="space-y-4">
+            <div className="bg-white p-5 rounded-2xl border border-sky-200">
+              <h3 className="text-xl font-bold text-[#0A1E3C]">Customer Feed Orders & Proforma Quotes ({adminOrders.length})</h3>
+              <p className="text-xs text-slate-500">Select an order to view full details, update status, or delete.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-sky-200 overflow-hidden">
+              <div className="divide-y divide-sky-100">
+                {adminOrders.map((order) => (
+                  <button key={order.id} type="button" onClick={() => setSelectedOrderDetail(order)} className="w-full text-left p-4 hover:bg-[#F4F7FB] flex flex-wrap items-center justify-between gap-3 cursor-pointer">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono-tech text-[11px] font-bold px-2 py-0.5 rounded bg-[#065AA7] text-white">{order.reference}</span>
+                        <span className="font-bold text-[#0A1E3C] truncate">{order.customerName}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${order.status === 'Completed' ? 'bg-green-100 text-green-700' : order.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : order.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{order.status}</span>
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1 truncate">{order.branchName} • {order.deliveryMode} • {order.createdAt}</div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-mono-tech font-bold text-[#065AA7] text-sm">UGX {order.totalAmountUgx.toLocaleString()}</span>
+                      <span className="text-xs font-bold text-[#065AA7]">View</span>
+                    </div>
+                  </button>
+                ))}
+                {adminOrders.length === 0 && <div className="p-8 text-center text-sm text-slate-500">No orders yet.</div>}
               </div>
             </div>
 
-            <div className="space-y-4">
-              {adminOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-2xl p-6 border border-sky-200 shadow-2xs"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-sky-100">
-                    <div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono-tech text-xs font-bold px-2.5 py-1 rounded bg-[#065AA7] text-white">
-                          {order.reference}
-                        </span>
-                        <h4 className="font-bold text-lg text-[#0A1E3C]">
-                          {order.customerName}
-                        </h4>
-                        <span className="font-mono-tech text-xs text-slate-500">
-                          ({order.customerPhone})
-                        </span>
-                        {order.customerEmail && (
-                          <span className="text-xs text-slate-500 inline-flex items-center gap-1">
-                            <Mail className="w-3.5 h-3.5" /> {order.customerEmail}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-slate-600 mt-1">
-                        Assigned Branch: <strong>{order.branchName}</strong> •{' '}
-                        <strong>{order.deliveryMode}</strong> • Created:{' '}
-                        <span className="font-mono-tech">{order.createdAt}</span>
-                        {order.userId && <span className="ml-2 font-mono-tech text-slate-400">User: {order.userId}</span>}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <select
-                        value={order.status}
-                        onChange={async (e) => {
-                          const status = e.target.value as CustomerOrder['status'];
-                          try { await api.adminUpdateOrderStatus(order.id, status); } catch {}
-                          onUpdateOrderStatus(order.id, status);
-                          setAdminOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status } : o));
-                          notify(`Order ${order.reference} status updated!`);
-                        }}
-                        className="px-3 py-2 rounded-xl bg-[#F4F7FB] border border-sky-300 text-xs font-bold text-[#065AA7]"
-                      >
-                        <option value="Pending">Status: Pending</option>
-                        <option value="Processing">Status: Processing</option>
-                        <option value="Dispatched">Status: Dispatched</option>
-                        <option value="Completed">Status: Completed</option>
-                      </select>
-
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try { await api.adminDeleteOrder(order.id); } catch {}
-                          onDeleteOrder(order.id);
-                          setAdminOrders((prev) => prev.filter((o) => o.id !== order.id));
-                          notify(`Removed order ${order.reference}`);
-                        }}
-                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer"
-                        title="Delete Order"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Order Items */}
-                  <div className="py-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {order.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 flex items-center justify-between text-xs"
-                      >
-                        <div>
-                          <span className="font-bold text-[#0A1E3C] block">
-                            {item.quantity}× {item.productName} ({item.productCode})
-                          </span>
-                          <span className="text-slate-500 font-mono-tech">
-                            {item.units} @ UGX {item.unitPriceUgx.toLocaleString()}
-                          </span>
+            {selectedOrderDetail && (() => {
+              const order = adminOrders.find((o) => o.id === selectedOrderDetail.id) || selectedOrderDetail;
+              return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrderDetail(null)}>
+                  <div className="absolute inset-0 bg-black/40" />
+                  <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-sky-100">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <span className="font-mono-tech text-xs font-bold px-2.5 py-1 rounded bg-[#065AA7] text-white">{order.reference}</span>
+                          <h3 className="font-bold text-lg text-[#0A1E3C]">{order.customerName}</h3>
                         </div>
-                        <span className="font-mono-tech font-bold text-[#065AA7]">
-                          UGX {(item.quantity * item.unitPriceUgx).toLocaleString()}
-                        </span>
+                        <div className="text-xs text-slate-600 mt-1 space-y-0.5">
+                          <div><span className="font-mono-tech">{order.customerPhone}</span>{order.customerEmail && <span className="ml-2 inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{order.customerEmail}</span>}</div>
+                          <div>Branch: <strong>{order.branchName}</strong> • <strong>{order.deliveryMode}</strong> • <span className="font-mono-tech">{order.createdAt}</span></div>
+                          {order.userId && <div className="font-mono-tech text-slate-400">User: {order.userId}</div>}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <button type="button" onClick={() => setSelectedOrderDetail(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                    </div>
 
-                  <div className="pt-3 border-t border-sky-100 flex items-center justify-between text-xs">
-                    <span className="font-mono-tech text-slate-600">
-                      Total Tonnage: <strong>{order.totalWeightKg} kg</strong> (
-                      {order.totalBags} bags)
-                    </span>
-                    <span className="font-mono-tech text-base font-bold text-[#065AA7]">
-                      Order Total: UGX {order.totalAmountUgx.toLocaleString()}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      <select value={order.status} onChange={async (e) => { const status = e.target.value as CustomerOrder['status']; try { await api.adminUpdateOrderStatus(order.id, status); } catch {} onUpdateOrderStatus(order.id, status); setAdminOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status } : o)); notify(`Order ${order.reference} status updated!`); }} className="px-3 py-2 rounded-xl bg-[#F4F7FB] border border-sky-300 text-xs font-bold text-[#065AA7]">
+                        <option value="Pending">Status: Pending</option><option value="Processing">Status: Processing</option><option value="Dispatched">Status: Dispatched</option><option value="Completed">Status: Completed</option>
+                      </select>
+                      <button type="button" onClick={async () => { try { await api.adminDeleteOrder(order.id); } catch {} onDeleteOrder(order.id); setAdminOrders((prev) => prev.filter((o) => o.id !== order.id)); setSelectedOrderDetail(null); notify(`Removed order ${order.reference}`); }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-xs font-bold cursor-pointer"><Trash2 className="w-4 h-4" /> Delete Order</button>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 flex items-center justify-between text-xs gap-3">
+                          <div><span className="font-bold text-[#0A1E3C] block">{item.quantity}× {item.productName} ({item.productCode})</span><span className="text-slate-500 font-mono-tech">{item.units} @ UGX {item.unitPriceUgx.toLocaleString()}</span></div>
+                          <span className="font-mono-tech font-bold text-[#065AA7] shrink-0">UGX {(item.quantity * item.unitPriceUgx).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-3 border-t border-sky-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="font-mono-tech text-slate-600">Total Tonnage: <strong>{order.totalWeightKg} kg</strong> ({order.totalBags} bags)</span>
+                      <span className="font-mono-tech text-base font-bold text-[#065AA7]">Order Total: UGX {order.totalAmountUgx.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1570,128 +1532,101 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         )}
 
         {activeModule === 'users' && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div className="bg-white p-5 rounded-2xl border border-sky-200 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-xl font-bold text-[#0A1E3C]">Registered Users ({users.length})</h3>
-                <p className="text-xs text-slate-500">Accounts that signed up/sign in on the website. Passwords are never shown.</p>
+                <p className="text-xs text-slate-500">Accounts that signed up/sign in on the website. Select a user to view details or manage admin role.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    const raw = localStorage.getItem('kaffiika_users_v1');
-                    setUsers(raw ? JSON.parse(raw) : []);
-                    notify('User list refreshed.');
-                  } catch { setUsers([]); }
-                }}
-                className="px-4 py-2 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs font-bold cursor-pointer"
-              >
-                Refresh
-              </button>
+              <button type="button" onClick={refreshAdminData} className="px-4 py-2 rounded-xl bg-[#E6EFF8] hover:bg-sky-100 text-[#065AA7] text-xs font-bold cursor-pointer">Refresh</button>
             </div>
 
             {users.length === 0 ? (
               <div className="bg-white p-8 rounded-2xl border border-sky-200 text-center text-slate-500 text-sm">No registered users yet.</div>
             ) : (
-              <div className="space-y-4">
-                {users.map((u: any) => {
-                  const userOrders = adminOrders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
-                  return (
-                    <div key={u.id || u.email} className="bg-white rounded-2xl border border-sky-200 p-5 shadow-2xs">
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 min-w-0">
-                          {u.photoUrl ? (
-                            <img src={u.photoUrl} alt={u.name || 'User'} className="w-14 h-14 rounded-xl object-cover border border-sky-200 bg-slate-100" />
-                          ) : (
-                            <div className="w-14 h-14 rounded-xl bg-[#E6EFF8] border border-sky-200 flex items-center justify-center text-[#065AA7]">
-                              <User className="w-6 h-6" />
-                            </div>
-                          )}
+              <div className="bg-white rounded-2xl border border-sky-200 overflow-hidden">
+                <div className="divide-y divide-sky-100">
+                  {users.map((u: any) => {
+                    const userOrders = adminOrders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
+                    const roleLabel = (String(u.email||'').toLowerCase()==='brownjh18@gmail.com' || u.role === 'superadmin') ? 'SUPER ADMIN' : String(u.role || 'user').toUpperCase();
+                    return (
+                      <button key={u.id || u.email} type="button" onClick={() => setSelectedUserDetail(u)} className="w-full text-left p-4 hover:bg-[#F4F7FB] flex items-center justify-between gap-4 cursor-pointer">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {u.photoUrl ? <img src={u.photoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-sky-200 bg-slate-100" /> : <div className="w-10 h-10 rounded-xl bg-[#E6EFF8] border border-sky-200 flex items-center justify-center text-[#065AA7]"><User className="w-5 h-5" /></div>}
                           <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="font-bold text-[#0A1E3C]">{u.name || 'Unnamed User'}</h4>
-                              <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${u.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                {u.verified ? 'VERIFIED' : 'UNVERIFIED'}
-                              </span>
-                              <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full bg-sky-100 text-[#065AA7]">
-                                {String(u.provider || 'email').toUpperCase()}
-                              </span>
-                              <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${u.role === 'admin' || u.role === 'superadmin' || String(u.email||'').toLowerCase()==='brownjh18@gmail.com' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
-                                {(String(u.email||'').toLowerCase()==='brownjh18@gmail.com' || u.role === 'superadmin') ? 'SUPER ADMIN' : String(u.role || 'user').toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                              <span className="inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{u.email}</span>
-                              {u.id && <span className="font-mono-tech text-slate-400">ID: {u.id}</span>}
-                            </div>
+                            <div className="font-bold text-[#0A1E3C] truncate">{u.name || 'Unnamed User'}</div>
+                            <div className="text-xs text-slate-500 truncate">{u.email}</div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-slate-500">Orders</div>
-                          <div className="font-mono-tech text-lg font-bold text-[#065AA7]">{userOrders.length}</div>
-                          <div className="text-[11px] text-slate-500">UGX {userOrders.reduce((s, o) => s + o.totalAmountUgx, 0).toLocaleString()}</div>
-                          <div className="mt-2 flex flex-col gap-1.5 items-end">
-                            {isSuper && String(u.email||'').toLowerCase() !== 'brownjh18@gmail.com' && u.id !== adminUser?.id && (
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  const nextRole = (u.role === 'admin' || u.role === 'superadmin') ? 'user' : 'admin';
-                                  try { await api.adminUpdateUserRole(u.id, nextRole); notify(`${nextRole === 'admin' ? 'Appointed' : 'Removed'} admin: ${u.email}`); await refreshAdminData(); }
-                                  catch (e: any) { notify(e.message || 'Failed to update role'); }
-                                }}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer ${(u.role === 'admin' || u.role === 'superadmin') ? 'bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-700' : 'bg-[#E6EFF8] hover:bg-[#065AA7] hover:text-white text-[#065AA7]'}`}
-                              >
-                                {(u.role === 'admin' || u.role === 'superadmin') ? 'Remove Admin' : 'Make Admin'}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return;
-                                try { await api.adminDelete('users', u.id); notify('User deleted.'); await refreshAdminData(); }
-                                catch (e: any) { notify(e.message || 'Failed to delete user'); }
-                              }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[11px] font-bold cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete
-                            </button>
-                          </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`hidden sm:inline text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${roleLabel === 'SUPER ADMIN' || roleLabel === 'ADMIN' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{roleLabel}</span>
+                          <span className="text-[11px] text-slate-500 font-mono-tech">{userOrders.length} orders</span>
+                          <span className="text-xs font-bold text-[#065AA7]">View</span>
                         </div>
-                      </div>
-
-                      <div className="mt-4 pt-4 border-t border-sky-100">
-                        <div className="text-xs font-bold text-slate-600 mb-2">Order History</div>
-                        {userOrders.length === 0 ? (
-                          <div className="text-xs text-slate-400">No orders placed by this user yet.</div>
-                        ) : (
-                          <div className="space-y-2">
-                            {userOrders.map((o) => (
-                              <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 text-xs">
-                                <div>
-                                  <span className="font-mono-tech font-bold text-[#065AA7]">{o.reference}</span>
-                                  <span className="text-slate-500 ml-2">{o.createdAt}</span>
-                                  <div className="text-slate-600 mt-0.5">{o.totalBags} bags • {o.branchName} • {o.deliveryMode}</div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
-                                    o.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                    o.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' :
-                                    o.status === 'Processing' ? 'bg-amber-100 text-amber-700' :
-                                    'bg-slate-100 text-slate-700'
-                                  }`}>{o.status}</span>
-                                  <span className="font-mono-tech font-bold text-[#0A1E3C]">UGX {o.totalAmountUgx.toLocaleString()}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
+
+            {selectedUserDetail && (() => {
+              const u = users.find((x: any) => x.id === selectedUserDetail.id) || selectedUserDetail;
+              const userOrders = adminOrders.filter((o) => o.userId === u.id || (o.customerEmail && u.email && o.customerEmail.toLowerCase() === String(u.email).toLowerCase()));
+              const isSA = String(u.email||'').toLowerCase()==='brownjh18@gmail.com' || u.role === 'superadmin';
+              const isAdminRole = u.role === 'admin' || isSA;
+              return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedUserDetail(null)}>
+                  <div className="absolute inset-0 bg-black/40" />
+                  <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-4 min-w-0">
+                        {u.photoUrl ? <img src={u.photoUrl} alt="" className="w-14 h-14 rounded-xl object-cover border border-sky-200" /> : <div className="w-14 h-14 rounded-xl bg-[#E6EFF8] border border-sky-200 flex items-center justify-center text-[#065AA7]"><User className="w-6 h-6" /></div>}
+                        <div className="min-w-0">
+                          <h3 className="text-lg font-bold text-[#0A1E3C] truncate">{u.name || 'Unnamed User'}</h3>
+                          <div className="text-xs text-slate-500 truncate">{u.email}</div>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${u.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{u.verified ? 'VERIFIED' : 'UNVERIFIED'}</span>
+                            <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full bg-sky-100 text-[#065AA7]">{String(u.provider || 'email').toUpperCase()}</span>
+                            <span className={`text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-full ${isAdminRole ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{isSA ? 'SUPER ADMIN' : String(u.role || 'user').toUpperCase()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => setSelectedUserDetail(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-xs">
+                      <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-slate-400 font-bold uppercase text-[10px]">Orders</div><div className="font-mono-tech font-bold text-[#065AA7] text-lg">{userOrders.length}</div></div>
+                      <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 col-span-1 sm:col-span-2"><div className="text-slate-400 font-bold uppercase text-[10px]">Total Spend</div><div className="font-mono-tech font-bold text-[#0A1E3C] text-lg">UGX {userOrders.reduce((s,o)=>s+o.totalAmountUgx,0).toLocaleString()}</div></div>
+                      <div className="p-3 rounded-xl bg-[#F4F7FB] border border-sky-100"><div className="text-slate-400 font-bold uppercase text-[10px]">User ID</div><div className="font-mono-tech text-[11px] text-slate-600 break-all">{u.id || '—'}</div></div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {isSuper && !isSA && u.id !== adminUser?.id && (
+                        <button type="button" onClick={async () => { const nextRole = isAdminRole ? 'user' : 'admin'; try { await api.adminUpdateUserRole(u.id, nextRole); notify(`${nextRole === 'admin' ? 'Appointed' : 'Removed'} admin: ${u.email}`); await refreshAdminData(); } catch (e: any) { notify(e.message || 'Failed to update role'); } }} className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${isAdminRole ? 'bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-700' : 'bg-[#065AA7] hover:bg-[#044685] text-white'}`}>
+                          {isAdminRole ? 'Remove Admin Role' : 'Make Admin'}
+                        </button>
+                      )}
+                      <button type="button" onClick={async () => { if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return; try { await api.adminDelete('users', u.id); notify('User deleted.'); setSelectedUserDetail(null); await refreshAdminData(); } catch (e: any) { notify(e.message || 'Failed to delete user'); } }} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-xs font-bold cursor-pointer"><Trash2 className="w-4 h-4" /> Delete User</button>
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-bold text-slate-600 mb-2">Order History</div>
+                      {userOrders.length === 0 ? <div className="text-xs text-slate-400">No orders placed by this user yet.</div> : (
+                        <div className="space-y-2">
+                          {userOrders.map((o) => (
+                            <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-[#F4F7FB] border border-sky-100 text-xs">
+                              <div><span className="font-mono-tech font-bold text-[#065AA7]">{o.reference}</span><span className="text-slate-500 ml-2">{o.createdAt}</span><div className="text-slate-600 mt-0.5">{o.totalBags} bags • {o.branchName}</div></div>
+                              <div className="flex items-center gap-2"><span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${o.status === 'Completed' ? 'bg-green-100 text-green-700' : o.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : o.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{o.status}</span><span className="font-mono-tech font-bold text-[#0A1E3C]">UGX {o.totalAmountUgx.toLocaleString()}</span></div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
