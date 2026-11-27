@@ -98,7 +98,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Sidebar: Categories & Filters (3 cols) */}
-          <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-24">
+          <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
             <div className="bg-white rounded-2xl p-5 border border-sky-200 shadow-2xs">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#065AA7] mb-3.5">
                 <Filter className="w-4 h-4" />
