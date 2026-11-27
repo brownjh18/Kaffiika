@@ -869,7 +869,7 @@ export function App() {
 
       {/* ==================== FLOATING WHATSAPP & TOAST NOTIFICATION ==================== */}
       {toastMessage && (
-        <div className="fixed bottom-20 right-5 z-50 bg-[#061A36] text-white px-4 py-3 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-bounce">
+        <div className={`fixed ${currentPage === '/admin' ? 'bottom-40 md:bottom-20' : 'bottom-20'} right-5 z-50 bg-[#061A36] text-white px-4 py-3 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-bounce`}>
           <CheckCircle2 className="w-4 h-4 text-[#F59E0B] shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -881,7 +881,7 @@ export function App() {
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-xs sm:text-sm shadow-xl border-2 border-white/25 transition-transform hover:scale-105"
+        className={`fixed ${currentPage === '/admin' ? 'bottom-24 md:bottom-5' : 'bottom-5'} right-5 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#065AA7] hover:bg-[#0284C7] text-white font-bold text-xs sm:text-sm shadow-xl border-2 border-white/25 transition-transform hover:scale-105`}
       >
         <MessageCircle className="w-4 h-4 text-[#F59E0B]" />
         <span>WhatsApp Sales Desk</span>

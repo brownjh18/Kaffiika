@@ -516,7 +516,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       {/* Admin Toast Notification */}
       {adminToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#061A36] text-white px-5 py-3.5 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+        <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 bg-[#061A36] text-white px-5 py-3.5 rounded-xl shadow-2xl border-2 border-[#F59E0B] flex items-center gap-2.5 text-xs sm:text-sm font-bold">
           <CheckCircle2 className="w-4 h-4 text-[#F59E0B]" />
           <span>{adminToast}</span>
         </div>
