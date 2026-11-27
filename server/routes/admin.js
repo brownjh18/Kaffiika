@@ -43,6 +43,16 @@ adminRouter.get('/users', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+adminRouter.delete('/users/:id', async (req, res, next) => {
+  try {
+    if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own admin account' });
+    const { error } = await supabase.from('users').delete().eq('id', req.params.id);
+    if (error) throw error;
+    await logAudit({ actorUserId: req.user.id, actorEmail: req.user.email, actorRole: req.user.role, action: 'user.delete', entityType: 'user', entityId: req.params.id, ip: req.ip });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 // Orders
 adminRouter.get('/orders', async (_req, res, next) => {
   try {

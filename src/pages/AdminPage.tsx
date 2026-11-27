@@ -26,6 +26,8 @@ import {
   Mail,
   Phone,
   Eye,
+  Menu,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Product,
@@ -95,9 +97,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [currentAdminPassword, setCurrentAdminPassword] = useState('');
   const [logs, setLogs] = useState<any[]>([]);
 
-  const [activeModule, setActiveModule] = useState<
-    'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'logs' | 'settings'
-  >('dashboard');
+  type AdminModule = 'dashboard' | 'products' | 'orders' | 'branches' | 'blogs' | 'team' | 'users' | 'logs' | 'settings';
+  const [activeModule, setActiveModule] = useState<AdminModule>('dashboard');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['overview', 'catalog', 'operations', 'people', 'system']);
 
   const [users, setUsers] = useState<any[]>([]);
   const [adminOrders, setAdminOrders] = useState<CustomerOrder[]>(orders);
@@ -381,8 +384,75 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     );
   }
 
+  const navGroups: { id: string; label: string; icon: React.ElementType; items: { id: AdminModule; label: string; icon: React.ElementType; badge?: string }[] }[] = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, items: [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ]},
+    { id: 'catalog', label: 'Catalog', icon: Package, items: [
+      { id: 'products', label: `Products (${products.length})`, icon: Package },
+      { id: 'blogs', label: `Blogs & Trainings (${blogs.length})`, icon: FileText },
+    ]},
+    { id: 'operations', label: 'Operations', icon: ShoppingBag, items: [
+      { id: 'orders', label: `Orders (${adminOrders.length})`, icon: ShoppingBag, badge: pendingOrdersCount > 0 ? `${pendingOrdersCount}` : undefined },
+      { id: 'branches', label: `Branches (${branches.length})`, icon: MapPin },
+    ]},
+    { id: 'people', label: 'People', icon: Users, items: [
+      { id: 'team', label: `Team (${team.length})`, icon: User },
+      { id: 'users', label: `Users (${users.length})`, icon: Users },
+    ]},
+    { id: 'system', label: 'System', icon: Settings, items: [
+      { id: 'logs', label: `Logs (${logs.length})`, icon: FileText },
+      { id: 'settings', label: 'Settings', icon: Settings },
+    ]},
+  ];
+
+  const activeGroup = navGroups.find((g) => g.items.some((i) => i.id === activeModule))?.id || 'overview';
+  const toggleGroup = (id: string) => setExpandedGroups((prev) => prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]);
+  const goTo = (id: AdminModule) => { setActiveModule(id); setMobileNavOpen(false); };
+
+  const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className="h-full flex flex-col">
+      <div className="px-4 py-4 border-b border-sky-200/70 flex items-center justify-between">
+        <div>
+          <div className="text-xs font-mono-tech font-bold text-[#065AA7] uppercase tracking-wider">Admin</div>
+          <div className="text-sm font-bold text-[#0A1E3C]">Dashboard Menu</div>
+        </div>
+        {mobile && <button type="button" onClick={() => setMobileNavOpen(false)} className="p-2 rounded-lg hover:bg-slate-100 cursor-pointer"><X className="w-4 h-4" /></button>}
+      </div>
+      <nav className="flex-1 overflow-y-auto p-3 space-y-2">
+        {navGroups.map((group) => {
+          const GroupIcon = group.icon;
+          const expanded = expandedGroups.includes(group.id);
+          const groupActive = activeGroup === group.id;
+          return (
+            <div key={group.id} className="rounded-xl border border-sky-100 overflow-hidden">
+              <button type="button" onClick={() => toggleGroup(group.id)} className={`w-full px-3 py-2.5 flex items-center justify-between text-left cursor-pointer ${groupActive ? 'bg-[#E6EFF8] text-[#065AA7]' : 'bg-white text-[#0A1E3C] hover:bg-slate-50'}`}>
+                <span className="flex items-center gap-2 text-sm font-bold"><GroupIcon className="w-4 h-4" />{group.label}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              </button>
+              {expanded && (
+                <div className="p-1.5 bg-white border-t border-sky-100 space-y-1">
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon;
+                    const active = activeModule === item.id;
+                    return (
+                      <button key={item.id} type="button" onClick={() => goTo(item.id)} className={`w-full px-3 py-2 rounded-lg flex items-center justify-between text-left text-xs font-semibold cursor-pointer ${active ? 'bg-[#065AA7] text-white' : 'text-slate-700 hover:bg-[#F4F7FB]'}`}>
+                        <span className="flex items-center gap-2"><ItemIcon className="w-4 h-4" />{item.label}</span>
+                        {item.badge && <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold ${active ? 'bg-white/20 text-white' : 'bg-[#F59E0B] text-[#061A36]'}`}>{item.badge}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F4F7FB] pb-20 md:pb-0">
       {/* Admin Top Header Bar */}
       <div className="bg-[#061A36] text-white border-b border-sky-400/20 py-6">
         <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
@@ -452,83 +522,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         </div>
       )}
 
-      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Module Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-8 bg-white p-2.5 rounded-2xl border border-sky-200 shadow-2xs">
-          {[
-            {
-              id: 'dashboard',
-              label: 'Executive Overview',
-              icon: LayoutDashboard,
-            },
-            {
-              id: 'products',
-              label: `Products & UGX Prices (${products.length})`,
-              icon: Package,
-            },
-            {
-              id: 'orders',
-              label: `Customer Orders (${adminOrders.length})`,
-              icon: ShoppingBag,
-              badge: pendingOrdersCount > 0 ? `${pendingOrdersCount} New` : undefined,
-            },
-            {
-              id: 'branches',
-              label: `Branches & Managers (${branches.length})`,
-              icon: MapPin,
-            },
-            {
-              id: 'blogs',
-              label: `Blogs & Trainings (${blogs.length})`,
-              icon: FileText,
-            },
-            {
-              id: 'team',
-              label: `Team Managers (${team.length})`,
-              icon: User,
-            },
-            {
-              id: 'users',
-              label: `Users (${users.length})`,
-              icon: Users,
-            },
-            {
-              id: 'logs',
-              label: `Logs (${logs.length})`,
-              icon: FileText,
-            },
-            {
-              id: 'settings',
-              label: 'Settings',
-              icon: Settings,
-            },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeModule === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() =>
-                  setActiveModule(tab.id as typeof activeModule)
-                }
-                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[#065AA7] text-white shadow-sm'
-                    : 'bg-[#F4F7FB] text-[#0A1E3C] hover:bg-[#E6EFF8]'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                {tab.badge && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#F59E0B] text-[#061A36] font-mono-tech text-[10px] font-bold">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="md:hidden mb-4 flex items-center justify-between bg-white border border-sky-200 rounded-xl p-3">
+          <button type="button" onClick={() => setMobileNavOpen(true)} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E6EFF8] text-[#065AA7] text-xs font-bold cursor-pointer"><Menu className="w-4 h-4" /> Menu</button>
+          <div className="text-xs font-bold text-slate-600 truncate ml-3">{navGroups.flatMap(g => g.items).find(i => i.id === activeModule)?.label}</div>
         </div>
+        <div className="flex gap-6 items-start">
+          <aside className="hidden md:block w-72 shrink-0 sticky top-4">
+            <div className="bg-white border border-sky-200 rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-2rem)]">
+              <SidebarContent />
+            </div>
+          </aside>
+          <main className="flex-1 min-w-0">
 
         {/* ==================== MODULE 1: EXECUTIVE DASHBOARD ==================== */}
         {activeModule === 'dashboard' && (
@@ -1669,6 +1674,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           <div className="text-xs text-slate-500">Orders</div>
                           <div className="font-mono-tech text-lg font-bold text-[#065AA7]">{userOrders.length}</div>
                           <div className="text-[11px] text-slate-500">UGX {userOrders.reduce((s, o) => s + o.totalAmountUgx, 0).toLocaleString()}</div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return;
+                              try { await api.adminDelete('users', u.id); notify('User deleted.'); await refreshAdminData(); }
+                              catch (e: any) { notify(e.message || 'Failed to delete user'); }
+                            }}
+                            className="mt-2 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[11px] font-bold cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                          </button>
                         </div>
                       </div>
 
@@ -1782,7 +1798,36 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </form>
           </div>
         )}
+          </main>
+        </div>
       </div>
+
+      {/* Mobile drawer */}
+      {mobileNavOpen && (
+        <div className="md:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl border-r border-sky-200">
+            <SidebarContent mobile />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-sky-200 px-2 py-1.5">
+        <div className="grid grid-cols-5 gap-1">
+          {navGroups.map((group) => {
+            const GroupIcon = group.icon;
+            const active = activeGroup === group.id;
+            const target = group.items[0].id;
+            return (
+              <button key={group.id} type="button" onClick={() => goTo(target)} className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-[10px] font-bold cursor-pointer ${active ? 'text-[#065AA7] bg-[#E6EFF8]' : 'text-slate-500'}`}>
+                <GroupIcon className="w-5 h-5" />
+                <span>{group.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 };

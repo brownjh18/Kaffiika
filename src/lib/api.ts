@@ -67,6 +67,6 @@ export const api = {
   adminUpdateOrderStatus: (id: string, status: string) => request(`/api/admin/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }, true),
   adminDeleteOrder: (id: string) => request(`/api/admin/orders/${id}`, { method: 'DELETE' }, true),
   adminUpsert: (entity: 'products'|'branches'|'blogs'|'team', item: any) => request(`/api/admin/${entity}`, { method: 'POST', body: JSON.stringify(item) }, true),
-  adminDelete: (entity: 'products'|'branches'|'blogs'|'team', id: string) => request(`/api/admin/${entity}/${id}`, { method: 'DELETE' }, true),
+  adminDelete: (entity: 'products'|'branches'|'blogs'|'team'|'users', id: string) => request(`/api/admin/${entity}/${id}`, { method: 'DELETE' }, true),
   upload: (dataUrl: string, folder = 'uploads', filename = 'file', admin = false) => request('/api/uploads', { method: 'POST', body: JSON.stringify({ dataUrl, folder, filename }) }, admin),
 };
