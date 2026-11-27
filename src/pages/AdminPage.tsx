@@ -514,7 +514,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6 items-start">
           <aside className="hidden md:block w-72 shrink-0 sticky top-4">
-            <div className="bg-white border border-sky-200 rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-2rem)]">
+            <div className="bg-white border border-sky-200 rounded-2xl shadow-sm overflow-y-auto max-h-[calc(100vh-2rem)]">
               <SidebarContent />
             </div>
           </aside>
@@ -994,17 +994,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <td className="py-3 px-4 font-mono-tech text-xs font-bold">
                           {prod.units}
                         </td>
-                        <td className="py-3 px-4">
-                          <input
-                            type="number"
-                            step={500}
-                            value={prod.priceUgx}
-                            onChange={(e) => {
-                              const val = Math.max(0, Number(e.target.value));
-                              onUpdateProduct({ ...prod, priceUgx: val });
-                            }}
-                            className="w-32 px-2.5 py-1.5 rounded-lg bg-[#F4F7FB] border border-sky-300 font-mono-tech text-xs font-bold text-[#065AA7]"
-                          />
+                        <td className="py-3 px-4 font-mono-tech text-xs font-bold text-[#065AA7]">
+                          UGX {prod.priceUgx.toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
                           <select
