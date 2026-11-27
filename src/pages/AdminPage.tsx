@@ -69,6 +69,38 @@ interface AdminPageProps {
   onNavigate: (page: PageRoute) => void;
 }
 
+const ImagePicker: React.FC<{ value: string; onChange: (url: string) => void; upload: (file: File) => Promise<string>; catalogue: string[]; label?: string }> = ({ value, onChange, upload, catalogue, label = 'Image' }) => {
+  const [mode, setMode] = useState<'upload' | 'catalogue'>('upload');
+  const [busy, setBusy] = useState(false);
+  const unique = Array.from(new Set(catalogue.filter(Boolean)));
+  return (
+    <div>
+      <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>
+      {value ? <img src={value} alt="" className="mb-3 w-24 h-24 rounded-xl object-cover border border-sky-200 bg-white" /> : <div className="mb-3 w-24 h-24 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[11px] text-slate-400">No image</div>}
+      <div className="flex gap-2 mb-3">
+        <button type="button" onClick={() => setMode('upload')} className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${mode==='upload'?'bg-[#065AA7] text-white':'bg-[#E6EFF8] text-[#065AA7]'}`}>Upload</button>
+        <button type="button" onClick={() => setMode('catalogue')} className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${mode==='catalogue'?'bg-[#065AA7] text-white':'bg-[#E6EFF8] text-[#065AA7]'}`}>Select from Catalogue</button>
+        {value && <button type="button" onClick={() => onChange('')} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-600 cursor-pointer">Remove</button>}
+      </div>
+      {mode === 'upload' ? (
+        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+          <Upload className="w-4 h-4" /> {busy ? 'Uploading...' : 'Upload Image'}
+          <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; setBusy(true); try { onChange(await upload(f)); } catch {} finally { setBusy(false); e.target.value=''; } }} />
+        </label>
+      ) : (
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border border-sky-200 bg-[#F4F7FB]">
+          {unique.map((url) => (
+            <button key={url} type="button" onClick={() => onChange(url)} className={`rounded-lg overflow-hidden border-2 cursor-pointer ${value===url?'border-[#065AA7]':'border-transparent hover:border-sky-300'}`}>
+              <img src={url} alt="" className="w-full h-14 object-cover bg-white" />
+            </button>
+          ))}
+          {unique.length === 0 && <div className="col-span-full text-xs text-slate-400 p-2">No catalogue images available.</div>}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const AdminPage: React.FC<AdminPageProps> = ({
   products,
   branches,
@@ -140,7 +172,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingTeam, setEditingTeam] = useState<TeamMember | null>(null);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [isAddingBlog, setIsAddingBlog] = useState(false);
+  const [isAddingTeam, setIsAddingTeam] = useState(false);
+  const [isAddingBranch, setIsAddingBranch] = useState(false);
   const [newProductForm, setNewProductForm] = useState<{
     name: string;
     code: string;
@@ -291,6 +327,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       districtOrArea: '',
     });
     notify(`Added new branch: ${created.name}`);
+    setIsAddingBranch(false);
   };
 
   const handleCreateBlogSubmit = (e: React.FormEvent) => {
@@ -326,6 +363,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       content: '',
     });
     notify(`Published blog post: ${created.title}`);
+    setIsAddingBlog(false);
   };
 
   if (!isAuthenticated) {
@@ -710,7 +748,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             {/* Add New Product Form Modal */}
             {isAddingProduct && (
-              <div className="bg-white rounded-2xl p-6 border-2 border-[#065AA7] shadow-xl">
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setIsAddingProduct(false)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-[#0A1E3C]">
                     Add New Feed Product to Kaffiika Catalog
@@ -829,41 +869,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">
-                      Official Kaffiika Product Image
-                    </label>
-                    <select
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <ImagePicker
+                      label="Official Kaffiika Product Image"
                       value={newProductForm.imageUrl}
-                      onChange={(e) =>
-                        setNewProductForm({
-                          ...newProductForm,
-                          imageUrl: e.target.value,
-                        })
-                      }
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                    >
-                      <option value={KAFFIIKA_ASSETS.productUploads.layers}>
-                        layers.jpg (Chicks / Layers)
-                      </option>
-                      <option value={KAFFIIKA_ASSETS.productUploads.broilers}>
-                        broilers.jpg (Broilers)
-                      </option>
-                      <option value={KAFFIIKA_ASSETS.productUploads.default}>
-                        default.jpg (Piggery Concentrates)
-                      </option>
-                      <option value={KAFFIIKA_ASSETS.productUploads.knursemeal}>
-                        pdt20230325105340773.jpg (Knursemeal)
-                      </option>
-                      <option value={KAFFIIKA_ASSETS.productUploads.cows}>
-                        cows.jpg (Dairy & Calves)
-                      </option>
-                      <option value={KAFFIIKA_ASSETS.productUploads.tilapia}>
-                        tilapia.jpg (Fish / Aqua)
-                      </option>
-                    </select>
-                    <div className="flex items-center gap-2 mt-2"><input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setNewProductForm({ ...newProductForm, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } }} className="w-full text-xs" /><button type="button" onClick={() => setNewProductForm({ ...newProductForm, imageUrl: '' })} className="px-2 py-1 rounded bg-red-50 text-red-600 text-[11px] font-bold cursor-pointer">Clear</button></div>
-                    <p className="text-[11px] text-slate-500 mt-1">Upload an image or choose a preset above.</p>
+                      onChange={(url) => setNewProductForm({ ...newProductForm, imageUrl: url })}
+                      upload={(f) => uploadFile(f, 'products')}
+                      catalogue={[...Object.values(KAFFIIKA_ASSETS.productUploads), ...products.map((p) => p.imageUrl)]}
+                    />
                   </div>
 
                   <div className="sm:col-span-2 lg:col-span-3">
@@ -900,38 +913,40 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </button>
                   </div>
                 </form>
+                </div>
               </div>
             )}
 
             {/* Edit Product Modal */}
             {editingProduct && (
-              <div className="bg-white rounded-2xl p-6 border-2 border-[#F59E0B] shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-[#0A1E3C]">Edit Product: {editingProduct.name}</h3>
-                  <button type="button" onClick={() => setEditingProduct(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Name</label><input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
-                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Code</label><input type="text" value={editingProduct.code} onChange={(e) => setEditingProduct({ ...editingProduct, code: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
-                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Unit Price (UGX)</label><input type="number" value={editingProduct.priceUgx} onChange={(e) => setEditingProduct({ ...editingProduct, priceUgx: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech font-bold text-[#065AA7]" /></div>
-                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Units</label><input type="text" value={editingProduct.units} onChange={(e) => setEditingProduct({ ...editingProduct, units: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
-                  <div><label className="block text-xs font-bold text-slate-600 mb-1">Stock (Bags)</label><input type="number" value={editingProduct.stockBags ?? 0} onChange={(e) => setEditingProduct({ ...editingProduct, stockBags: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
-                  <div className="sm:col-span-3"><label className="block text-xs font-bold text-slate-600 mb-1">Summary</label><input type="text" value={editingProduct.summary} onChange={(e) => setEditingProduct({ ...editingProduct, summary: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
-                  <div className="sm:col-span-3">
-                    <label className="block text-xs font-bold text-slate-600 mb-1">Product Image</label>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
-                        <Upload className="w-4 h-4" /> Upload Image
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setEditingProduct({ ...editingProduct, imageUrl: await uploadFile(f, 'products') }); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
-                      </label>
-                      {editingProduct.imageUrl && <button type="button" onClick={() => setEditingProduct({ ...editingProduct, imageUrl: '' })} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove Image</button>}
-                    </div>
-                    {editingProduct.imageUrl ? <img src={editingProduct.imageUrl} alt="" className="mt-3 w-24 h-24 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-24 h-24 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[11px] text-slate-400">No image</div>}
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditingProduct(null)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-[#0A1E3C]">Edit Product: {editingProduct.name}</h3>
+                    <button type="button" onClick={() => setEditingProduct(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
                   </div>
-                </div>
-                <div className="mt-4 flex justify-end gap-2">
-                  <button type="button" onClick={() => setEditingProduct(null)} className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">Cancel</button>
-                  <button type="button" onClick={() => { onUpdateProduct(editingProduct); notify(`Saved changes to ${editingProduct.name}`); setEditingProduct(null); }} className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Update Product</button>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Name</label><input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Product Code</label><input type="text" value={editingProduct.code} onChange={(e) => setEditingProduct({ ...editingProduct, code: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Unit Price (UGX)</label><input type="number" value={editingProduct.priceUgx} onChange={(e) => setEditingProduct({ ...editingProduct, priceUgx: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech font-bold text-[#065AA7]" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Units</label><input type="text" value={editingProduct.units} onChange={(e) => setEditingProduct({ ...editingProduct, units: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Stock (Bags)</label><input type="number" value={editingProduct.stockBags ?? 0} onChange={(e) => setEditingProduct({ ...editingProduct, stockBags: Number(e.target.value) })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div className="sm:col-span-3"><label className="block text-xs font-bold text-slate-600 mb-1">Summary</label><input type="text" value={editingProduct.summary} onChange={(e) => setEditingProduct({ ...editingProduct, summary: e.target.value })} className="w-full px-3.5 py-2 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div className="sm:col-span-3">
+                      <ImagePicker
+                        label="Product Image"
+                        value={editingProduct.imageUrl}
+                        onChange={(url) => setEditingProduct({ ...editingProduct, imageUrl: url })}
+                        upload={(f) => uploadFile(f, 'products')}
+                        catalogue={[...Object.values(KAFFIIKA_ASSETS.productUploads), ...products.map((p) => p.imageUrl)]}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button type="button" onClick={() => setEditingProduct(null)} className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">Cancel</button>
+                    <button type="button" onClick={() => { onUpdateProduct(editingProduct); notify(`Saved changes to ${editingProduct.name}`); setEditingProduct(null); }} className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Update Product</button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1164,199 +1179,89 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
         {/* ==================== MODULE 4: BRANCHES & MANAGERS CRUD ==================== */}
         {activeModule === 'branches' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Add New Branch Form (4 cols) */}
-            <div className="lg:col-span-4 bg-white rounded-2xl p-6 border border-sky-200 shadow-2xs">
-              <h3 className="text-lg font-bold text-[#0A1E3C] mb-4">
-                Add New Regional Branch
-              </h3>
-              <form onSubmit={handleCreateBranchSubmit} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">
-                    Branch Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newBranchForm.name}
-                    onChange={(e) =>
-                      setNewBranchForm({ ...newBranchForm, name: e.target.value })
-                    }
-                    placeholder="e.g. Lira Branch"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">
-                    Branch Manager Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newBranchForm.manager}
-                    onChange={(e) =>
-                      setNewBranchForm({
-                        ...newBranchForm,
-                        manager: e.target.value,
-                      })
-                    }
-                    placeholder="e.g. Okello Daniel"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">
-                    Manager Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newBranchForm.phone}
-                    onChange={(e) =>
-                      setNewBranchForm({
-                        ...newBranchForm,
-                        phone: e.target.value,
-                      })
-                    }
-                    placeholder="+256 772 000 000"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">
-                    Region Corridor
-                  </label>
-                  <select
-                    value={newBranchForm.region}
-                    onChange={(e) =>
-                      setNewBranchForm({
-                        ...newBranchForm,
-                        region: e.target.value as Branch['region'],
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                  >
-                    <option value="Kampala Metro">Kampala Metro</option>
-                    <option value="Wakiso & Central">Wakiso & Central</option>
-                    <option value="Mukono & Eastern">Mukono & Eastern</option>
-                    <option value="Masaka & Western">Masaka & Western</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">
-                    District / Street Area
-                  </label>
-                  <input
-                    type="text"
-                    value={newBranchForm.districtOrArea}
-                    onChange={(e) =>
-                      setNewBranchForm({
-                        ...newBranchForm,
-                        districtOrArea: e.target.value,
-                      })
-                    }
-                    placeholder="e.g. Main Street, Town Center"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Branch to Network</span>
-                </button>
-              </form>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl font-bold text-[#0A1E3C]">Branches ({branches.length})</h3>
+              <button type="button" onClick={() => setIsAddingBranch(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer"><Plus className="w-4 h-4" /> Add Branch</button>
             </div>
 
-            {/* Branch List (8 cols) */}
-            <div className="lg:col-span-8 space-y-4">
-              <div className="bg-white p-4 rounded-2xl border border-sky-200">
-                <input
-                  type="text"
-                  value={branchSearch}
-                  onChange={(e) => setBranchSearch(e.target.value)}
-                  placeholder="Search branches or managers..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm"
-                />
+            {isAddingBranch && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setIsAddingBranch(false)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-[#0A1E3C]">Add New Regional Branch</h3>
+                    <button type="button" onClick={() => setIsAddingBranch(false)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                  </div>
+                  <form onSubmit={handleCreateBranchSubmit} className="space-y-3.5">
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Branch Name *</label><input type="text" required value={newBranchForm.name} onChange={(e) => setNewBranchForm({ ...newBranchForm, name: e.target.value })} placeholder="e.g. Lira Branch" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Branch Manager Name *</label><input type="text" required value={newBranchForm.manager} onChange={(e) => setNewBranchForm({ ...newBranchForm, manager: e.target.value })} placeholder="e.g. Okello Daniel" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Manager Phone Number *</label><input type="text" required value={newBranchForm.phone} onChange={(e) => setNewBranchForm({ ...newBranchForm, phone: e.target.value })} placeholder="+256 772 000 000" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Region Corridor</label>
+                      <select value={newBranchForm.region} onChange={(e) => setNewBranchForm({ ...newBranchForm, region: e.target.value as Branch['region'] })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
+                        <option value="Kampala Metro">Kampala Metro</option><option value="Wakiso & Central">Wakiso & Central</option><option value="Mukono & Eastern">Mukono & Eastern</option><option value="Masaka & Western">Masaka & Western</option>
+                      </select>
+                    </div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">District / Street Area</label><input type="text" value={newBranchForm.districtOrArea} onChange={(e) => setNewBranchForm({ ...newBranchForm, districtOrArea: e.target.value })} placeholder="e.g. Main Street, Town Center" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /><span>Add Branch to Network</span></button>
+                  </form>
+                </div>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {branches
-                  .filter(
-                    (b) =>
-                      !branchSearch ||
-                      b.name.toLowerCase().includes(branchSearch.toLowerCase()) ||
-                      b.manager.toLowerCase().includes(branchSearch.toLowerCase())
-                  )
-                  .map((branch) => (
-                    <div
-                      key={branch.id}
-                      className="bg-white p-4 rounded-2xl border border-sky-200 flex flex-col justify-between gap-3"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono-tech font-bold uppercase px-2 py-0.5 rounded bg-[#E6EFF8] text-[#065AA7]">
-                            {branch.region}
-                          </span>
-                          {!branch.isHeadquarters && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onDeleteBranch(branch.id);
-                                notify(`Removed ${branch.name}`);
-                              }}
-                              className="text-slate-400 hover:text-rose-600 cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-base text-[#0A1E3C] mt-1">
-                          {branch.name}
-                        </h4>
-                        <div className="mt-2 space-y-1.5">
-                          <div>
-                            <label className="text-[10px] uppercase font-bold text-slate-400 block">
-                              Manager Name
-                            </label>
-                            <input
-                              type="text"
-                              value={branch.manager}
-                              onChange={(e) =>
-                                onUpdateBranch({
-                                  ...branch,
-                                  manager: e.target.value,
-                                })
-                              }
-                              className="w-full px-2.5 py-1 rounded bg-[#F4F7FB] border border-sky-200 text-xs font-bold text-[#0A1E3C]"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] uppercase font-bold text-slate-400 block">
-                              Primary Phone
-                            </label>
-                            <input
-                              type="text"
-                              value={branch.phones[0] || ''}
-                              onChange={(e) =>
-                                onUpdateBranch({
-                                  ...branch,
-                                  phones: [
-                                    e.target.value,
-                                    ...branch.phones.slice(1),
-                                  ],
-                                })
-                              }
-                              className="w-full px-2.5 py-1 rounded bg-[#F4F7FB] border border-sky-200 text-xs font-mono-tech font-bold text-[#065AA7]"
-                            />
-                          </div>
+            {editingBranch && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditingBranch(null)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-[#0A1E3C]">Edit Branch: {editingBranch.name}</h3>
+                    <button type="button" onClick={() => setEditingBranch(null)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                  </div>
+                  <div className="space-y-3.5">
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Branch Name</label><input type="text" value={editingBranch.name} onChange={(e) => setEditingBranch({ ...editingBranch, name: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Manager Name</label><input type="text" value={editingBranch.manager} onChange={(e) => setEditingBranch({ ...editingBranch, manager: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Primary Phone</label><input type="text" value={editingBranch.phones[0] || ''} onChange={(e) => setEditingBranch({ ...editingBranch, phones: [e.target.value, ...editingBranch.phones.slice(1)] })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" /></div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">Region Corridor</label>
+                      <select value={editingBranch.region} onChange={(e) => setEditingBranch({ ...editingBranch, region: e.target.value as Branch['region'] })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
+                        <option value="Kampala Metro">Kampala Metro</option><option value="Wakiso & Central">Wakiso & Central</option><option value="Mukono & Eastern">Mukono & Eastern</option><option value="Masaka & Western">Masaka & Western</option>
+                      </select>
+                    </div>
+                    <div><label className="block text-xs font-bold text-slate-600 mb-1">District / Street Area</label><input type="text" value={editingBranch.districtOrArea} onChange={(e) => setEditingBranch({ ...editingBranch, districtOrArea: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" /></div>
+                  </div>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button type="button" onClick={() => setEditingBranch(null)} className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">Cancel</button>
+                    <button type="button" onClick={() => { onUpdateBranch(editingBranch); notify(`Saved ${editingBranch.name}`); setEditingBranch(null); }} className="px-5 py-2 rounded-xl bg-[#065AA7] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Save Changes</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white p-4 rounded-2xl border border-sky-200">
+              <input type="text" value={branchSearch} onChange={(e) => setBranchSearch(e.target.value)} placeholder="Search branches or managers..." className="w-full px-4 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {branches
+                .filter((b) => !branchSearch || b.name.toLowerCase().includes(branchSearch.toLowerCase()) || b.manager.toLowerCase().includes(branchSearch.toLowerCase()))
+                .map((branch) => (
+                  <div key={branch.id} className="bg-white p-4 rounded-2xl border border-sky-200 flex flex-col justify-between gap-3">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono-tech font-bold uppercase px-2 py-0.5 rounded bg-[#E6EFF8] text-[#065AA7]">{branch.region}</span>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => setEditingBranch({ ...branch, phones: [...(branch.phones || [])] })} className="p-1.5 rounded-lg bg-sky-50 hover:bg-[#065AA7] hover:text-white text-[#065AA7] cursor-pointer" title="Edit"><Edit3 className="w-4 h-4" /></button>
+                          {!branch.isHeadquarters && <button type="button" onClick={() => { onDeleteBranch(branch.id); notify(`Removed ${branch.name}`); }} className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 cursor-pointer" title="Delete"><Trash2 className="w-4 h-4" /></button>}
                         </div>
                       </div>
+                      <h4 className="font-bold text-base text-[#0A1E3C] mt-2">{branch.name}</h4>
+                      <div className="mt-2 space-y-1 text-xs text-slate-600">
+                        <div><span className="font-bold text-slate-400 uppercase text-[10px]">Manager: </span>{branch.manager}</div>
+                        <div><span className="font-bold text-slate-400 uppercase text-[10px]">Phone: </span><span className="font-mono-tech text-[#065AA7]">{branch.phones[0] || '—'}</span></div>
+                        <div><span className="font-bold text-slate-400 uppercase text-[10px]">Area: </span>{branch.districtOrArea}</div>
+                      </div>
                     </div>
-                  ))}
-              </div>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -1398,12 +1303,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
             )}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-sky-200 shadow-2xs">
-              <h3 className="text-lg font-bold text-[#0A1E3C] mb-4">
-                Publish New Farmer Training or Blog Post
-              </h3>
-              <form onSubmit={handleCreateBlogSubmit} className="space-y-3.5">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl font-bold text-[#0A1E3C]">Blogs & Trainings ({blogs.length})</h3>
+              <button type="button" onClick={() => setIsAddingBlog(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer"><Plus className="w-4 h-4" /> Add Blog / Training</button>
+            </div>
+            {isAddingBlog && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setIsAddingBlog(false)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e)=>e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-[#0A1E3C]">Publish New Farmer Training or Blog Post</h3>
+                    <button type="button" onClick={() => setIsAddingBlog(false)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                  </div>
+                  <form onSubmit={handleCreateBlogSubmit} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">
                     Post / Training Title *
@@ -1505,16 +1418,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer"
-                >
-                  Publish Post to Website
-                </button>
-              </form>
-            </div>
-
-            <div className="lg:col-span-7 space-y-4">
+                <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Publish Post to Website</button>
+                  </form>
+                </div>
+              </div>
+            )}
+            <div className="space-y-4">
               {blogs.map((post) => (
                 <div
                   key={post.id}
@@ -1589,43 +1498,57 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
             )}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-4 bg-white rounded-2xl p-6 border border-sky-200 shadow-sm">
-              <h3 className="text-lg font-bold text-[#0A1E3C] mb-4">Add Team Member / Manager</h3>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                if (!newTeamForm.name.trim()) return;
-                onAddTeamMember({
-                  id: `team-${Date.now()}`, name: newTeamForm.name.trim(), role: newTeamForm.role.trim() || 'Manager',
-                  email: newTeamForm.email.trim(), phones: [newTeamForm.phone.trim()].filter(Boolean),
-                  department: newTeamForm.department, bio: newTeamForm.bio.trim(), photoUrl: newTeamForm.photoUrl.trim() || KAFFIIKA_ASSETS.accountIcon,
-                });
-                setNewTeamForm({ name: '', role: '', email: '', phone: '+256 ', department: 'Regional Sales Management', bio: '', photoUrl: '' });
-                notify('Team member added.');
-              }} className="space-y-3">
-                <input value={newTeamForm.name} onChange={(e)=>setNewTeamForm({...newTeamForm,name:e.target.value})} placeholder="Full name *" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
-                <input value={newTeamForm.role} onChange={(e)=>setNewTeamForm({...newTeamForm,role:e.target.value})} placeholder="Role / Title" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
-                <input value={newTeamForm.email} onChange={(e)=>setNewTeamForm({...newTeamForm,email:e.target.value})} placeholder="Email" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
-                <input value={newTeamForm.phone} onChange={(e)=>setNewTeamForm({...newTeamForm,phone:e.target.value})} placeholder="Phone" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" />
-                <select value={newTeamForm.department} onChange={(e)=>setNewTeamForm({...newTeamForm,department:e.target.value as TeamMember['department']})} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
-                  <option>Executive Leadership</option><option>Commercial & Operations</option><option>Regional Sales Management</option>
-                </select>
-                <textarea value={newTeamForm.bio} onChange={(e)=>setNewTeamForm({...newTeamForm,bio:e.target.value})} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
-                      <Upload className="w-4 h-4" /> Upload Photo
-                      <input type="file" accept="image/*" className="hidden" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
-                    </label>
-                    {newTeamForm.photoUrl && <button type="button" onClick={()=>setNewTeamForm({...newTeamForm,photoUrl:''})} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove</button>}
-                  </div>
-                  {newTeamForm.photoUrl ? <img src={newTeamForm.photoUrl} alt="" className="mt-3 w-20 h-20 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-20 h-20 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[10px] text-slate-400">No photo</div>}
-                </div>
-                <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>
-              </form>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl font-bold text-[#0A1E3C]">Team Members ({team.length})</h3>
+              <button type="button" onClick={() => setIsAddingTeam(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer"><Plus className="w-4 h-4" /> Add Team Member</button>
             </div>
-            <div className="lg:col-span-8 space-y-4">
+
+            {isAddingTeam && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setIsAddingTeam(false)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl p-6 border border-sky-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-[#0A1E3C]">Add Team Member / Manager</h3>
+                    <button type="button" onClick={() => setIsAddingTeam(false)} className="p-1.5 rounded-lg bg-slate-100 text-slate-600 cursor-pointer"><X className="w-4 h-4" /></button>
+                  </div>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newTeamForm.name.trim()) return;
+                    onAddTeamMember({
+                      id: `team-${Date.now()}`, name: newTeamForm.name.trim(), role: newTeamForm.role.trim() || 'Manager',
+                      email: newTeamForm.email.trim(), phones: [newTeamForm.phone.trim()].filter(Boolean),
+                      department: newTeamForm.department, bio: newTeamForm.bio.trim(), photoUrl: newTeamForm.photoUrl.trim() || KAFFIIKA_ASSETS.accountIcon,
+                    });
+                    setNewTeamForm({ name: '', role: '', email: '', phone: '+256 ', department: 'Regional Sales Management', bio: '', photoUrl: '' });
+                    notify('Team member added.');
+                    setIsAddingTeam(false);
+                  }} className="space-y-3">
+                    <input value={newTeamForm.name} onChange={(e)=>setNewTeamForm({...newTeamForm,name:e.target.value})} placeholder="Full name *" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                    <input value={newTeamForm.role} onChange={(e)=>setNewTeamForm({...newTeamForm,role:e.target.value})} placeholder="Role / Title" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                    <input value={newTeamForm.email} onChange={(e)=>setNewTeamForm({...newTeamForm,email:e.target.value})} placeholder="Email" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                    <input value={newTeamForm.phone} onChange={(e)=>setNewTeamForm({...newTeamForm,phone:e.target.value})} placeholder="Phone" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm font-mono-tech" />
+                    <select value={newTeamForm.department} onChange={(e)=>setNewTeamForm({...newTeamForm,department:e.target.value as TeamMember['department']})} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm">
+                      <option>Executive Leadership</option><option>Commercial & Operations</option><option>Regional Sales Management</option>
+                    </select>
+                    <textarea value={newTeamForm.bio} onChange={(e)=>setNewTeamForm({...newTeamForm,bio:e.target.value})} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-[#F4F7FB] border border-sky-200 text-sm" />
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">Photo</label>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white text-xs font-bold cursor-pointer">
+                          <Upload className="w-4 h-4" /> Upload Photo
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e)=>{const f=e.target.files?.[0]; if(f) { try { setNewTeamForm({...newTeamForm, photoUrl: await uploadFile(f, 'team')}); } catch (err: any) { notify(err.message || 'Upload failed'); } } e.target.value=''; }} />
+                        </label>
+                        {newTeamForm.photoUrl && <button type="button" onClick={()=>setNewTeamForm({...newTeamForm,photoUrl:''})} className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold cursor-pointer">Remove</button>}
+                      </div>
+                      {newTeamForm.photoUrl ? <img src={newTeamForm.photoUrl} alt="" className="mt-3 w-20 h-20 rounded-xl object-cover border border-sky-200" /> : <div className="mt-3 w-20 h-20 rounded-xl border-2 border-dashed border-sky-200 bg-[#F4F7FB] flex items-center justify-center text-[10px] text-slate-400">No photo</div>}
+                    </div>
+                    <button type="submit" className="w-full py-3 px-4 rounded-xl bg-[#065AA7] hover:bg-[#044685] text-white font-bold text-sm cursor-pointer">Add Team Member</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
               {team.map((m) => (
                 <div key={m.id} className="bg-white p-5 rounded-2xl border border-sky-200 flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -1643,7 +1566,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               ))}
             </div>
-          </div>
           </div>
         )}
 
