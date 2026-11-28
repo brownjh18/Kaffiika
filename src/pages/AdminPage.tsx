@@ -139,15 +139,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['overview', 'catalog', 'operations', 'people', 'system']);
 
   const [users, setUsers] = useState<any[]>([]);
-  const [adminOrders, setAdminOrders] = useState<CustomerOrder[]>(orders);
+  const [adminOrders, setAdminOrders] = useState<CustomerOrder[]>([]);
   const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<CustomerOrder | null>(null);
 
-  useEffect(() => { setAdminOrders(orders); }, [orders]);
-
   const refreshAdminData = async () => {
     try {
-      const [me, u, o, l] = await Promise.all([api.adminMe().catch(() => null), api.adminUsers().catch(() => []), api.adminOrders().catch(() => []), api.adminLogs().catch(() => [])]);
+      const [me, u, o, l] = await Promise.all([api.adminMe().catch(() => null), api.adminUsers().catch(() => null), api.adminOrders().catch(() => null), api.adminLogs().catch(() => null)]);
       if (me && !me.error) setAdminUser(me);
       if (Array.isArray(u)) setUsers(u);
       if (Array.isArray(l)) setLogs(l);

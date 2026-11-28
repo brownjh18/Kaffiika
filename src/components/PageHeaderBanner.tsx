@@ -20,6 +20,7 @@ const ROUTE_LABELS: Partial<Record<PageRoute, string>> = {
   '/media-gallery': 'Blogs & Media',
   '/contact': 'Contact Us',
   '/admin': 'Admin',
+  '/track-order': 'Track Orders',
   '/privacy-policy': 'Privacy Policy',
   '/terms': 'Terms & Conditions',
   '/delivery-policy': 'Delivery & Pickup Policy',

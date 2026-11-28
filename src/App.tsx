@@ -48,6 +48,7 @@ import { AdminPage } from './pages/AdminPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { DeliveryPolicyPage } from './pages/DeliveryPolicyPage';
+import { TrackOrderPage } from './pages/TrackOrderPage';
 
 type NavItem = { route: PageRoute; label: string; badge?: string };
 type NavGroup = { id: string; label: string; route?: PageRoute; items?: NavItem[] };
@@ -64,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
   { id: 'resources', label: 'Resources', items: [
     { route: '/farming-guides', label: 'Farming Guides' },
     { route: '/media-gallery', label: 'Blogs & Media' },
+    { route: '/track-order', label: 'Track Orders' },
   ]},
   { id: 'contact', label: 'Contact', route: '/contact' },
 ];
@@ -80,6 +82,7 @@ export function App() {
     '/media-gallery',
     '/contact',
     '/admin',
+    '/track-order',
     '/privacy-policy',
     '/terms',
     '/delivery-policy',
@@ -744,6 +747,10 @@ export function App() {
           />
         )}
 
+        {currentPage === '/track-order' && (
+          <TrackOrderPage currentUser={currentUser} onNavigate={handleNavigate} onOpenAuth={() => setIsAuthModalOpen(true)} />
+        )}
+
         {currentPage === '/privacy-policy' && (
           <PrivacyPolicyPage onNavigate={handleNavigate} />
         )}
@@ -963,6 +970,7 @@ export function App() {
         onClose={() => setIsProfileModalOpen(false)}
         onUpdate={handleUpdateProfile}
         onLogout={handleLogout}
+        onNavigate={handleNavigate}
       />
     </div>
   );

@@ -18,6 +18,7 @@ export type PageRoute =
   | '/media-gallery'
   | '/contact'
   | '/admin'
+  | '/track-order'
   | '/privacy-policy'
   | '/terms'
   | '/delivery-policy';
